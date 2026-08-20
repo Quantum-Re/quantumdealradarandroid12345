@@ -35,6 +35,12 @@ enum class OpportunityTier(
         shortBadge = "PREZZO PIENO",
         description = "Costo di carico vicino o superiore ai prezzi medi degli annunci locali. Richiede massima cautela sui costi di cantiere.",
         colorHex = 0xFFEF4444 // Red
+    ),
+    AVOID(
+        label = "❌ DA EVITARE",
+        shortBadge = "FUORI MERCATO",
+        description = "Prezzo di acquisto superiore ai valori medi di zona. Rischio di minusvalenza o tempi di rivendita indefiniti.",
+        colorHex = 0xFF991B1B // Dark Red
     );
 
     companion object {
@@ -43,7 +49,8 @@ enum class OpportunityTier(
                 score >= 80 -> ULTRA
                 score >= 65 -> HIGH
                 score >= 50 -> MODERATE
-                else -> LOW
+                score >= 25 -> LOW
+                else -> AVOID
             }
         }
     }
@@ -66,6 +73,8 @@ data class PropertyOpportunityEvaluation(
     val marketSaturationScore: Int,
     val absorptionRatePercent: Double,
     val opportunityScore: Int, // 0 - 100
+    val scoreAffidabile: Boolean,
+    val missingMarketData: List<String>,
     val tier: OpportunityTier,
     val headline: String,
     val actionableInsight: String,
@@ -76,24 +85,47 @@ object PropertyOpportunityEngine {
 
     /**
      * Extracts normalized city/municipality name from full property address.
+     * Returns null if no valid city can be determined to avoid incorrect defaults.
      */
-    fun extractLocationName(address: String): String {
-        val cleaned = address
-            .replace("Via ", "", ignoreCase = true)
-            .replace("Viale ", "", ignoreCase = true)
-            .replace("Corso ", "", ignoreCase = true)
-            .replace("Piazza ", "", ignoreCase = true)
-            .replace("Largo ", "", ignoreCase = true)
-            .replace("Vicolo ", "", ignoreCase = true)
-            .replace("Strada ", "", ignoreCase = true)
-            .replace("Località ", "", ignoreCase = true)
+    fun extractLocationName(address: String): String? {
+        if (address.isBlank()) return null
 
-        val parts = cleaned.split(",")
-        return if (parts.size > 1) {
-            parts.last().replace("\\(.*?\\)".toRegex(), "").trim()
-        } else {
-            cleaned.split(" ").lastOrNull()?.trim() ?: "Milano"
+        val recognizedCities = listOf(
+            "Milano", "Monza", "Paderno Dugnano", "Bergamo", "Brescia",
+            "Roma", "Torino", "Bologna", "Firenze", "Napoli",
+            "Verona", "Genova", "Palermo", "Bari"
+        )
+
+        val prefixes = listOf(
+            "Via", "Viale", "Corso", "Piazza", "Piazzale",
+            "Largo", "Vicolo", "Strada", "Località"
+        )
+
+        val segments = address.split(",")
+        for (segment in segments) {
+            val trimmed = segment.trim()
+            // Remove provincial codes in parentheses, e.g. "(MI)"
+            val withoutProvince = trimmed.replace("\\(.*?\\)".toRegex(), "").trim()
+
+            if (withoutProvince.isBlank()) continue
+
+            // Check if it starts with a street prefix followed by space or dot
+            val startsWithPrefix = prefixes.any { prefix ->
+                withoutProvince.startsWith("$prefix ", ignoreCase = true) ||
+                withoutProvince.startsWith("$prefix.", ignoreCase = true)
+            }
+
+            if (startsWithPrefix) continue
+
+            // Compare with recognized cities (whole word match, case insensitive)
+            val matchedCity = recognizedCities.find { city ->
+                withoutProvince.equals(city, ignoreCase = true)
+            }
+
+            if (matchedCity != null) return matchedCity
         }
+
+        return null
     }
 
     /**
@@ -104,21 +136,51 @@ object PropertyOpportunityEngine {
         property: Property,
         kpi: ProvinceScrapedKpi? = null
     ): PropertyOpportunityEvaluation {
-        val location = extractLocationName(property.address).ifBlank { "Milano" }
+        val extractedLoc = extractLocationName(property.address)
+        val location = extractedLoc ?: "Sconosciuta"
         val scrapedKpi = kpi ?: MarketEstimateService.getCuratedProvinceKpi(location)
 
+        val missing = mutableListOf<String>()
+        if (scrapedKpi.avgSalePriceSqM == null) missing.add("avgSalePriceSqM")
+        
         val surface = max(1, property.surfaceSqm)
         val propertyPricePerSqm = property.price / surface
-        val liveMarketPricePerSqm = (scrapedKpi.avgSalePriceSqM ?: 2000.0).coerceAtLeast(800.0)
+        
+        // REGOLA 1: Se mancano dati di mercato essenziali, score = 0 e inaffidabile
+        if (scrapedKpi.avgSalePriceSqM == null) {
+            return PropertyOpportunityEvaluation(
+                propertyId = property.id,
+                location = location,
+                surfaceSqm = surface,
+                acquisitionPrice = property.price,
+                propertyPricePerSqm = propertyPricePerSqm,
+                liveMarketPricePerSqm = 0.0,
+                scrapedMarketValue = 0.0,
+                totalInvested = property.price + property.estimatedRenovationCost,
+                undervaluedPercent = 0.0,
+                alphaEquityGain = 0.0,
+                potentialRoiPercent = 0.0,
+                grossRentalYieldPotential = 0.0,
+                daysOnMarket = 0,
+                marketSaturationScore = 0,
+                absorptionRatePercent = 0.0,
+                opportunityScore = 0,
+                scoreAffidabile = false,
+                missingMarketData = missing,
+                tier = OpportunityTier.AVOID,
+                headline = "⚠️ Dati di mercato mancanti per $location",
+                actionableInsight = "Non è possibile calcolare un punteggio affidabile senza le quotazioni medie di zona."
+            )
+        }
+
+        val liveMarketPricePerSqm = scrapedKpi.avgSalePriceSqM!!
         val scrapedMarketValue = liveMarketPricePerSqm * surface
 
         val totalInvested = property.price + property.estimatedRenovationCost
         val alphaEquityGain = scrapedMarketValue - totalInvested
 
         // % undervalued vs live market average price
-        val undervaluedPercent = if (scrapedMarketValue > 0) {
-            ((scrapedMarketValue - property.price) / scrapedMarketValue) * 100.0
-        } else 0.0
+        val undervaluedPercent = ((scrapedMarketValue - property.price) / scrapedMarketValue) * 100.0
 
         // Potential ROI comparing target exit or live scraped market value against total invested
         val exitValue = if (property.targetResalePrice > 0) property.targetResalePrice else scrapedMarketValue
@@ -126,13 +188,13 @@ object PropertyOpportunityEngine {
             ((exitValue - totalInvested) / totalInvested) * 100.0
         } else 0.0
 
-        val rentPriceSqM = scrapedKpi.avgRentPriceSqM ?: 12.0
-        val grossRentalYieldPotential = if (property.price > 0) {
+        val rentPriceSqM = scrapedKpi.avgRentPriceSqM ?: 0.0
+        val grossRentalYieldPotential = if (property.price > 0 && rentPriceSqM > 0) {
             (rentPriceSqM * surface * 12.0 / property.price) * 100.0
         } else 0.0
 
         // 1. Undervaluation Spread Score (0 - 50 points)
-        val undervalueScore = ((undervaluedPercent / 35.0) * 50.0).coerceIn(0.0, 50.0)
+        val undervalueScore = ((undervaluedPercent / 35.0) * 50.0).coerceIn(-50.0, 50.0)
 
         // 2. Distress Strategy & Pricing Advantage (0 - 20 points)
         val isDistressed = property.distressStatus.isNotBlank() &&
@@ -151,7 +213,7 @@ object PropertyOpportunityEngine {
         val yieldScore = (grossRentalYieldPotential / 9.0).coerceIn(0.0, 1.0) * 10.0
 
         val rawTotal = undervalueScore + distressScore + targetMarginBonus + domScore + absorptionScore + yieldScore
-        val opportunityScore = rawTotal.roundToInt().coerceIn(5, 99)
+        val opportunityScore = rawTotal.roundToInt().coerceIn(0, 99)
         val tier = OpportunityTier.fromScore(opportunityScore)
 
         val formattedSpread = String.format(Locale.US, "%.1f", undervaluedPercent)
@@ -163,6 +225,7 @@ object PropertyOpportunityEngine {
             OpportunityTier.HIGH -> "⚡ Ottimo sconto sul mercato live di $location (-$formattedSpread%)"
             OpportunityTier.MODERATE -> "⚖️ Valore coerente con i parametri medi di $location"
             OpportunityTier.LOW -> "⚠️ Prezzo di carico elevato rispetto alla media di zona"
+            OpportunityTier.AVOID -> "❌ Asset fuori mercato o pericoloso"
         }
 
         val domText = scrapedKpi.avgDaysOnMarket?.let { "${it}gg" } ?: "N/D"
@@ -173,6 +236,7 @@ object PropertyOpportunityEngine {
             OpportunityTier.HIGH -> "Il differenziale positivo garantisce un cuscinetto di sicurezza di oltre €${String.format(Locale.ITALY, "%,.0f", alphaEquityGain)} rispetto ai costi totali previsti. Ottima liquidità di zona (assorbimento $absorptionText)."
             OpportunityTier.MODERATE -> "In linea con i valori di mercato (€$formattedPpsqm/m² vs €$formattedMarketPpsqm/m²). La redditività dipende interamente dall'ottimizzazione del capitolato di ristrutturazione."
             OpportunityTier.LOW -> "Il costo di carico (€$formattedPpsqm/m²) è vicino al prezzo medio di vendita. Ricalibrare i costi di cantiere o valutare la conversione in locazione ad alta resa (€${String.format(Locale.ITALY, "%.1f", grossRentalYieldPotential)}% lordo)."
+            OpportunityTier.AVOID -> "Prezzo per m² (€$formattedPpsqm) nettamente superiore ai valori di mercato (€$formattedMarketPpsqm). Operazione ad alto rischio di minusvalenza."
         }
 
         return PropertyOpportunityEvaluation(
@@ -192,6 +256,8 @@ object PropertyOpportunityEngine {
             marketSaturationScore = scrapedKpi.marketSaturationScore ?: 50,
             absorptionRatePercent = scrapedKpi.absorptionRatePercent ?: 60.0,
             opportunityScore = opportunityScore,
+            scoreAffidabile = true,
+            missingMarketData = emptyList(),
             tier = tier,
             headline = headline,
             actionableInsight = actionableInsight,
@@ -207,7 +273,7 @@ object PropertyOpportunityEngine {
         kpiMap: Map<String, ProvinceScrapedKpi> = emptyMap()
     ): Map<Long, PropertyOpportunityEvaluation> {
         return properties.associate { prop ->
-            val loc = extractLocationName(prop.address)
+            val loc = extractLocationName(prop.address) ?: "Sconosciuta"
             val kpi = kpiMap[loc.lowercase()] ?: kpiMap[prop.address.lowercase()]
             prop.id to evaluateProperty(prop, kpi)
         }

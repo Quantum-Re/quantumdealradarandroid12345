@@ -154,7 +154,7 @@ object PredictiveDealAlertEngine {
         property: Property,
         kpi: ProvinceScrapedKpi? = null
     ): PredictiveDealEvaluation {
-        val location = PropertyOpportunityEngine.extractLocationName(property.address).ifBlank { "Milano" }
+        val location = PropertyOpportunityEngine.extractLocationName(property.address)?.ifBlank { "Milano" } ?: "Milano"
         val scrapedKpi = kpi ?: MarketEstimateService.getCuratedProvinceKpi(location)
         val provinceStats = computeProvinceHistoricalYieldStats(scrapedKpi)
 

@@ -60,6 +60,8 @@ class PortfolioOverviewCalculationTest {
             marketSaturationScore = 30,
             absorptionRatePercent = 75.0,
             opportunityScore = oppScore,
+            scoreAffidabile = true,
+            missingMarketData = emptyList(),
             tier = OpportunityTier.fromScore(oppScore),
             headline = "Test Headline",
             actionableInsight = "Test Insight"

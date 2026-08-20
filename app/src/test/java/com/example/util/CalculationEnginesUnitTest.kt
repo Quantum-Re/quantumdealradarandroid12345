@@ -71,7 +71,7 @@ class CalculationEnginesUnitTest {
         assertEquals(9000.0, evaluation.propertyPricePerSqm, 0.01)
         assertTrue("Undervalued percent deve essere <= 0", evaluation.undervaluedPercent <= 0.0)
         assertTrue("Opportunity score per immobile fuori prezzo deve essere < 50", evaluation.opportunityScore < 50)
-        assertEquals(OpportunityTier.LOW, evaluation.tier)
+        assertEquals(OpportunityTier.AVOID, evaluation.tier)
     }
 
     @Test

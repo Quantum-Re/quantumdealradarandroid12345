@@ -126,7 +126,9 @@ class FinancialValuationEngineTest {
         assertEquals(OpportunityTier.MODERATE, OpportunityTier.fromScore(64))
         assertEquals(OpportunityTier.MODERATE, OpportunityTier.fromScore(50))
         assertEquals(OpportunityTier.LOW, OpportunityTier.fromScore(49))
-        assertEquals(OpportunityTier.LOW, OpportunityTier.fromScore(0))
+        assertEquals(OpportunityTier.LOW, OpportunityTier.fromScore(25))
+        assertEquals(OpportunityTier.AVOID, OpportunityTier.fromScore(24))
+        assertEquals(OpportunityTier.AVOID, OpportunityTier.fromScore(0))
     }
 
     // ==========================================
@@ -184,6 +186,8 @@ class FinancialValuationEngineTest {
             marketSaturationScore = 40,
             absorptionRatePercent = 75.0,
             opportunityScore = 82,
+            scoreAffidabile = true,
+            missingMarketData = emptyList(),
             tier = OpportunityTier.ULTRA,
             headline = "Ultra",
             actionableInsight = "Buy"
@@ -206,6 +210,8 @@ class FinancialValuationEngineTest {
             marketSaturationScore = 50,
             absorptionRatePercent = 65.0,
             opportunityScore = 78,
+            scoreAffidabile = true,
+            missingMarketData = emptyList(),
             tier = OpportunityTier.HIGH,
             headline = "High",
             actionableInsight = "Buy"

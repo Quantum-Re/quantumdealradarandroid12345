@@ -360,7 +360,7 @@ class PropertyViewModel @JvmOverloads constructor(
             _isRefreshingMarketData.value = true
             try {
                 val currentProps = repository.allProperties.first()
-                val distinctLocations = currentProps.map {
+                val distinctLocations = currentProps.mapNotNull {
                     PropertyOpportunityEngine.extractLocationName(it.address)
                 }.filter { it.isNotBlank() }.distinct()
 
