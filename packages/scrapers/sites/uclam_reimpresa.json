@@ -1,0 +1,26 @@
+{
+  "id": "uclam_reimpresa",
+  "name": "UCLAM / RE-Impresa",
+  "domain": "re-impresa.it",
+  "url": "https://www.re-impresa.it/",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://www.re-impresa.it/robots.txt",
+    "robotsStatus": "NESSUN_ROBOTS",
+    "configStatus": "CONSENTITO",
+    "crawlDelaySeconds": 3,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".annuncio-box",
+    "titleSelector": ".titolo-annuncio",
+    "priceSelector": ".prezzo-richiesta",
+    "marketValueSelector": ".stima-mercato",
+    "sqmSelector": ".metri-quadri",
+    "locationSelector": ".comune-prov"
+  },
+  "metadata": {
+    "category": "Immobili Industriali e Commerciali",
+    "totalDealsFound": 45,
+    "notes": "Dismissioni e portafogli corporate ad alto rendimento."
+  }
+}

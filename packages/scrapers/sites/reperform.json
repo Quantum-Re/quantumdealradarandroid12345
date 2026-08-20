@@ -1,0 +1,26 @@
+{
+  "id": "reperform",
+  "name": "Reperform",
+  "domain": "reperform.com",
+  "url": "https://www.reperform.com/",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://www.reperform.com/robots.txt",
+    "robotsStatus": "CONSENTITO",
+    "configStatus": "CONSENTITO",
+    "crawlDelaySeconds": 2,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".asset-card",
+    "titleSelector": ".asset-title",
+    "priceSelector": ".base-price",
+    "marketValueSelector": ".appraisal-val",
+    "sqmSelector": ".surface-mq",
+    "locationSelector": ".geo-location"
+  },
+  "metadata": {
+    "category": "Remarketing & NPL",
+    "totalDealsFound": 84,
+    "notes": "Portale specializzato in aste e dismissioni patrimoniali e NPL."
+  }
+}

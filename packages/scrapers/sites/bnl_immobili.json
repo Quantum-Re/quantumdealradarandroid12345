@@ -1,0 +1,26 @@
+{
+  "id": "bnl_immobili",
+  "name": "BNL Immobili",
+  "domain": "immobili.bnl.it",
+  "url": "https://immobili.bnl.it/",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://immobili.bnl.it/robots.txt",
+    "robotsStatus": "CONSENTITO",
+    "configStatus": "CONSENTITO",
+    "crawlDelaySeconds": 2,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".immobile-card",
+    "titleSelector": ".card-header-title",
+    "priceSelector": ".prezzo-base",
+    "marketValueSelector": ".valore-stima",
+    "sqmSelector": ".superficie-totale",
+    "locationSelector": ".citta-provincia"
+  },
+  "metadata": {
+    "category": "Patrimonio BNL BNP Paribas",
+    "totalDealsFound": 38,
+    "notes": "Ex agenzie e patrimoni commerciali BNL BNP Paribas."
+  }
+}

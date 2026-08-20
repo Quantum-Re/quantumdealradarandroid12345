@@ -1,0 +1,6 @@
+{
+  "name": "Quantum Deal Radar",
+  "description": "Real estate deal radar and distressed property tracking application for real estate investor analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

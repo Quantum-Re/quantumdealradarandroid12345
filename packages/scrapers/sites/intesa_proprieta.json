@@ -1,0 +1,26 @@
+{
+  "id": "intesa_proprieta",
+  "name": "Intesa Sanpaolo Proprietà",
+  "domain": "intesasanpaolo.com",
+  "url": "https://www.intesasanpaolo.com/it/proprieta.html",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://www.intesasanpaolo.com/robots.txt",
+    "robotsStatus": "CONSENTITO",
+    "configStatus": "CONSENTITO",
+    "crawlDelaySeconds": 2,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".property-item-box",
+    "titleSelector": ".property-title",
+    "priceSelector": ".asking-price",
+    "marketValueSelector": ".appraisal-val",
+    "sqmSelector": ".property-sqm",
+    "locationSelector": ".city-name"
+  },
+  "metadata": {
+    "category": "Patrimonio Intesa Sanpaolo",
+    "totalDealsFound": 42,
+    "notes": "Immobili ad uso commerciale e direzionale ex-filiali."
+  }
+}

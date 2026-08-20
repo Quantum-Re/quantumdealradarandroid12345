@@ -1,0 +1,26 @@
+{
+  "id": "cdp_fintecna_bancaditalia",
+  "name": "CDP / Fintecna e Banca d’Italia",
+  "domain": "cdp.it",
+  "url": "https://www.cdp.it/immobiliare",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://www.cdp.it/robots.txt",
+    "robotsStatus": "CONSENTITO",
+    "configStatus": "DA_VERIFICARE",
+    "crawlDelaySeconds": 3,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".bando-item",
+    "titleSelector": ".bando-title",
+    "priceSelector": ".importo-base",
+    "marketValueSelector": ".valore-stimato",
+    "sqmSelector": ".superficie",
+    "locationSelector": ".regione-comune"
+  },
+  "metadata": {
+    "category": "Dismissioni Pubbliche & Istituzionali",
+    "totalDealsFound": 31,
+    "notes": "Valorizzazione e dismissione del patrimonio immobiliare pubblico CDP, Fintecna e Banca d'Italia."
+  }
+}

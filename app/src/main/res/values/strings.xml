@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Quantum Deal Radar</string>
+    <string name="nav_radar">Radar</string>
+    <string name="nav_map">Mappa</string>
+    <string name="nav_brief">Brief</string>
+    <string name="nav_sources">Fonti</string>
+    <string name="nav_roi">ROI</string>
+    <string name="nav_analytics">Analytics</string>
+</resources>

@@ -1,0 +1,14 @@
+{
+  "sites": [
+    "reperform.json",
+    "iresales.json",
+    "uclam_reimpresa.json",
+    "bnl_immobili.json",
+    "bper_leasing.json",
+    "mps_bandi.json",
+    "intesa_proprieta.json",
+    "pvp_quimmo.json",
+    "bper_real_estate.json",
+    "cdp_fintecna_bancaditalia.json"
+  ]
+}

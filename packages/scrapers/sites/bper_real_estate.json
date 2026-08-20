@@ -1,0 +1,26 @@
+{
+  "id": "bper_real_estate",
+  "name": "BPER Real Estate",
+  "domain": "bper.it",
+  "url": "https://www.bper.it/real-estate",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://www.bper.it/robots.txt",
+    "robotsStatus": "NESSUN_ROBOTS",
+    "configStatus": "SOLO_CONTATTO",
+    "crawlDelaySeconds": 5,
+    "userAgentAllowed": false
+  },
+  "selectors": {
+    "listSelector": ".direct-asset",
+    "titleSelector": ".asset-title",
+    "priceSelector": ".indicative-price",
+    "marketValueSelector": ".book-value",
+    "sqmSelector": ".total-sqm",
+    "locationSelector": ".address"
+  },
+  "metadata": {
+    "category": "Trattativa Diretta & Off-Market",
+    "totalDealsFound": 15,
+    "notes": "Canale di contatto diretto e offerte private BPER Real Estate."
+  }
+}

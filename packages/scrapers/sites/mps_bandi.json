@@ -1,0 +1,26 @@
+{
+  "id": "mps_bandi",
+  "name": "MPS – Bandi e Procedure Competitive",
+  "domain": "mps.it",
+  "url": "https://www.mps.it/comunicazioni-alla-clientela/avvisi/",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://www.mps.it/robots.txt",
+    "robotsStatus": "CONSENTITO",
+    "configStatus": "DA_VERIFICARE",
+    "crawlDelaySeconds": 3,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".avviso-row",
+    "titleSelector": ".descrizione-immobile",
+    "priceSelector": ".prezzo-base",
+    "marketValueSelector": ".valore-perizia",
+    "sqmSelector": ".superficie-commerciale",
+    "locationSelector": ".citta"
+  },
+  "metadata": {
+    "category": "Procedure Competitive e Bandi MPS",
+    "totalDealsFound": 29,
+    "notes": "Avvisi di vendita e bandi competitivi Monte dei Paschi di Siena."
+  }
+}

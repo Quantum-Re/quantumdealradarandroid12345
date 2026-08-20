@@ -1,0 +1,90 @@
+﻿
+Welcome to Gradle 9.3.1!
+
+Here are the highlights of this release:
+ - Test reporting improvements
+ - Error and warning improvements
+ - Build authoring improvements
+
+For more details see https://docs.gradle.org/9.3.1/release-notes.html
+
+Calculating task graph as no cached configuration is available for tasks: compileDebugKotlin
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig
+
+> Task :app:processDebugGoogleServices
+File google-services.json is missing.
+The Google Services Plugin cannot function without it.
+Searched locations: C:\quantum\quantumdealradar\app\src\debug\google-services.json, C:\quantum\quantumdealradar\app\src\debug\google-services.json, C:\quantum\quantumdealradar\app\src\google-services.json, C:\quantum\quantumdealradar\app\src\debug\google-services.json, C:\quantum\quantumdealradar\app\src\Debug\google-services.json, C:\quantum\quantumdealradar\app\google-services.json
+
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:parseDebugLocalResources
+> Task :app:generateDebugRFile
+> Task :app:kspDebugKotlin
+> Task :app:compileDebugKotlin
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/auth/FirebaseAuthManager.kt:612:17 Condition is always 'true'.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/service/DealRadarFirebaseMessagingService.kt:10:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/service/DealRadarFirebaseMessagingService.kt:11:15 'fun onNewToken(p0: String): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/AiFeaturesHubDialog.kt:88:5 'fun AlertDialog(onDismissRequest: () -> Unit, modifier: Modifier = ..., properties: DialogProperties = ..., content: @Composable() ComposableFunction0<Unit>): Unit' is deprecated. Use BasicAlertDialog instead.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/AiFeaturesHubDialog.kt:158:17 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/D3MapOverlayHUD.kt:193:21 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/DealDetailBottomSheet.kt:638:48 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/DealKanbanBoard.kt:436:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/DealKanbanBoard.kt:682:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/DistressedAlertCriteriaDialog.kt:345:17 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/DistressedPropertyDetailBottomSheet.kt:680:53 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/DueDiligenceDocumentDialog.kt:60:5 'fun AlertDialog(onDismissRequest: () -> Unit, modifier: Modifier = ..., properties: DialogProperties = ..., content: @Composable() ComposableFunction0<Unit>): Unit' is deprecated. Use BasicAlertDialog instead.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/EmailVerificationDialog.kt:409:56 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/FcmPushCenterDialog.kt:184:57 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/FcmPushCenterDialog.kt:684:36 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/ForgotPasswordDialog.kt:422:60 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/GoogleMapsOverlayToggle.kt:201:61 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/GoogleMapsOverlayToggle.kt:460:48 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/GoogleMapsOverlayToggle.kt:575:146 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/InteractiveRoiCalculatorCard.kt:993:52 'val Icons.Filled.OpenInNew: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.OpenInNew.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/MarketTrendDrawer.kt:418:48 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/MarketTrendDrawer.kt:538:40 'val Icons.Filled.ShowChart: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ShowChart.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/OnboardingCarouselDialog.kt:82:35 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/OnboardingCarouselDialog.kt:116:35 'val Icons.Filled.ShowChart: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ShowChart.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PortfolioAlertsSheet.kt:402:44 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PortfolioAppreciationTrendChart.kt:252:123 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PortfolioAppreciationTrendChart.kt:941:50 'fun String.capitalize(locale: Locale): String' is deprecated. Use replaceFirstChar instead.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PortfolioOverviewWidget.kt:445:91 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PortfolioOverviewWidget.kt:445:121 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PortfolioOverviewWidget.kt:625:42 'val Icons.Filled.ShowChart: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ShowChart.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PropertyComparisonBottomSheet.kt:295:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PropertyMapView.kt:460:55 'val Icons.Filled.StickyNote2: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.StickyNote2.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PropertyMapView.kt:475:25 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PropertyOfferDialog.kt:496:44 'val Icons.Filled.Send: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Send.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/components/PropertyPipelineComparisonView.kt:193:53 'val Icons.Filled.CompareArrows: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.CompareArrows.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/AddPropertyScreen.kt:301:38 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/AddPropertyScreen.kt:349:38 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/AddPropertyScreen.kt:1222:43 'val Icons.Filled.StickyNote2: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.StickyNote2.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/AddPropertyScreen.kt:1237:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/GranularNotificationConfigScreen.kt:320:58 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/GranularNotificationConfigScreen.kt:586:40 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/GranularNotificationConfigScreen.kt:892:21 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/GranularNotificationConfigScreen.kt:1233:48 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/GranularNotificationConfigScreen.kt:1375:52 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/GranularNotificationConfigScreen.kt:1451:21 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/GranularNotificationConfigScreen.kt:1473:21 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/GranularNotificationConfigScreen.kt:1495:21 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/MapViewScreen.kt:1476:39 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/MarketInsightsScreen.kt:260:56 'val Icons.Filled.ShowChart: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ShowChart.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/MarketKpiDashboardScreen.kt:73:48 'val Icons.Filled.CompareArrows: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.CompareArrows.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/MyPropertiesDashboardScreen.kt:425:56 'val Icons.Filled.CompareArrows: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.CompareArrows.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/MyPropertiesDashboardScreen.kt:634:9 Condition is always 'true'.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/MyPropertiesDashboardScreen.kt:3204:44 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/PropertyTrendSummaryScreen.kt:180:53 'val Icons.Filled.ShowChart: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ShowChart.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/RoiCalculatorScreen.kt:286:69 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/SubscriptionManagementScreen.kt:1040:44 'val Icons.Filled.ReceiptLong: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ReceiptLong.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/ToolsHubScreen.kt:267:42 'val Icons.Filled.ShowChart: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ShowChart.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/ui/screens/YieldBenchmarkingScreen.kt:582:134 'val Icons.Filled.TrendingDown: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingDown.
+w: file:///C:/quantum/quantumdealradar/app/src/main/java/com/example/util/FcmPushManager.kt:211:45 'val token: Task<String!>' is deprecated. Deprecated in Java.
+
+BUILD SUCCESSFUL in 4m 26s
+9 actionable tasks: 9 executed
+Configuration cache entry stored.

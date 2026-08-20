@@ -1,0 +1,26 @@
+{
+  "id": "bper_leasing",
+  "name": "BPER Leasing",
+  "domain": "bperleasing.it",
+  "url": "https://www.bperleasing.it/beni-in-vendita/",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://www.bperleasing.it/robots.txt",
+    "robotsStatus": "CONSENTITO",
+    "configStatus": "CONSENTITO",
+    "crawlDelaySeconds": 2,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".asset-card",
+    "titleSelector": ".asset-name",
+    "priceSelector": ".base-price",
+    "marketValueSelector": ".appraisal-value",
+    "sqmSelector": ".surface",
+    "locationSelector": ".location"
+  },
+  "metadata": {
+    "category": "Leasing Risolti & Asset BPER",
+    "totalDealsFound": 51,
+    "notes": "Beni e immobili derivanti da contratti di leasing risolti."
+  }
+}

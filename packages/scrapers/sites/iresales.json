@@ -1,0 +1,26 @@
+{
+  "id": "iresales",
+  "name": "i-Resales",
+  "domain": "i-resales.it",
+  "url": "https://www.i-resales.it/",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://www.i-resales.it/robots.txt",
+    "robotsStatus": "CONSENTITO",
+    "configStatus": "CONSENTITO",
+    "crawlDelaySeconds": 2,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".listing-item",
+    "titleSelector": "h3.title",
+    "priceSelector": ".price-tag",
+    "marketValueSelector": ".market-value",
+    "sqmSelector": ".surface",
+    "locationSelector": ".address-label"
+  },
+  "metadata": {
+    "category": "Real Estate Remarketing",
+    "totalDealsFound": 62,
+    "notes": "Piattaforma di remarketing immobiliare per asset corporate e industriali."
+  }
+}

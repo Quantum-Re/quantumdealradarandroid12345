@@ -1,0 +1,26 @@
+{
+  "id": "pvp_quimmo",
+  "name": "PVP e Quimmo",
+  "domain": "portalevenditepubbliche.giustizia.it",
+  "url": "https://portalevenditepubbliche.giustizia.it",
+  "scrapingPolicy": {
+    "robotsTxtUrl": "https://portalevenditepubbliche.giustizia.it/robots.txt",
+    "robotsStatus": "CONSENTITO",
+    "configStatus": "CONSENTITO",
+    "crawlDelaySeconds": 2,
+    "userAgentAllowed": true
+  },
+  "selectors": {
+    "listSelector": ".scheda-asta",
+    "titleSelector": ".titolo-lotto",
+    "priceSelector": ".offerta-minima",
+    "marketValueSelector": ".valore-perizia",
+    "sqmSelector": ".mq-lotto",
+    "locationSelector": ".ubicazione"
+  },
+  "metadata": {
+    "category": "Aste Giudiziarie & Vendite Pubbliche",
+    "totalDealsFound": 194,
+    "notes": "Portale Vendite Pubbliche del Ministero della Giustizia e Quimmo."
+  }
+}
