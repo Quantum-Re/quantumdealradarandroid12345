@@ -123,7 +123,9 @@ fun DealDetailBottomSheet(
 
     var activeRoiCalcData by remember(deal.id) {
         val rent = (deal.surfaceSqm * 13.5).coerceAtLeast(650.0)
-        val renov = if (deal.discountPercent > 25) 25000.0 else 10000.0
+        // Il costo di ristrutturazione non si deduce dallo sconto sul prezzo: non c'è
+        // alcuna relazione reale tra i due. Resta a zero finché l'utente non lo inserisce.
+        val renov = 0.0
         val legal = (deal.askingPrice * 0.04).coerceAtLeast(4000.0)
         mutableStateOf(
             RoiCalculationData(
@@ -655,7 +657,9 @@ fun DealDetailBottomSheet(
                 if (showInteractiveRoiCalc) {
                     Spacer(modifier = Modifier.height(8.dp))
                     val estimatedMonthlyRent = (deal.surfaceSqm * 13.5).coerceAtLeast(650.0)
-                    val estimatedRenov = if (deal.discountPercent > 25) 25000.0 else 10000.0
+                    // Il costo di ristrutturazione non si deduce dallo sconto sul prezzo:
+                    // resta a zero finché l'utente non lo inserisce nel calcolatore.
+                    val estimatedRenov = 0.0
                     LockedPremiumOverlay(
                         isLocked = isBlind,
                         title = "Simulatore Finanziario ROI & Rendimenti",

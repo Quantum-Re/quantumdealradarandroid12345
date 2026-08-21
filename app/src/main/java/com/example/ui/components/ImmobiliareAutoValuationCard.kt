@@ -462,6 +462,14 @@ fun ImmobiliareAutoValuationCard(
                                 .background(SurfaceCardDark.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
                                 .padding(10.dp)
                         ) {
+                        if (underwritingResult == null) {
+                            Text(
+                                text = "Dati insufficienti per la perizia",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AmberGold
+                            )
+                        } else {
                             Text(
                                 text = "Regime Fiscale & Parametri Finanziari",
                                 fontSize = 11.sp,
@@ -544,10 +552,10 @@ fun ImmobiliareAutoValuationCard(
                                     Column(modifier = Modifier.padding(6.dp)) {
                                         Text("DSCR Mutuo", fontSize = 9.sp, color = TextMutedDark)
                                         Text(
-                                            "${String.format(Locale.ITALY, "%.2f", underwritingResult.dscr)}x",
+                                            underwritingResult.dscr?.let { "${String.format(Locale.ITALY, "%.2f", it)}x" } ?: "n/a (nessun debito)",
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (underwritingResult.dscr >= 1.25) EmeraldGreen else AmberGold
+                                            color = if (underwritingResult.dscr == null) TextSecondaryDark else if (underwritingResult.dscr >= 1.25) EmeraldGreen else AmberGold
                                         )
                                     }
                                 }
@@ -628,6 +636,7 @@ fun ImmobiliareAutoValuationCard(
                                     }
                                 }
                             }
+                        }
                         }
                     }
         }

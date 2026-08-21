@@ -52,8 +52,8 @@ data class PortfolioHealthMetrics(
     val averageGrossYieldPercent: Double,
     val totalAnnualRentalPotential: Double,
     val totalMonthlyRentalPotential: Double,
-    val averageOpportunityScore: Int,
-    val averageDaysOnMarket: Int,
+    val averageOpportunityScore: Int?,
+    val averageDaysOnMarket: Int?,
     val healthScore: Int,
     val healthTierLabel: String,
     val healthTierBadge: String,
@@ -82,8 +82,8 @@ object PortfolioMetricsCalculator {
                 averageGrossYieldPercent = 0.0,
                 totalAnnualRentalPotential = 0.0,
                 totalMonthlyRentalPotential = 0.0,
-                averageOpportunityScore = 0,
-                averageDaysOnMarket = 0,
+                averageOpportunityScore = null,
+                averageDaysOnMarket = null,
                 healthScore = 0,
                 healthTierLabel = "Nessun Immobile",
                 healthTierBadge = "IN ATTESA DI DATI",
@@ -138,7 +138,7 @@ object PortfolioMetricsCalculator {
             sumAnnualRent += annualRent
 
             if (eval != null) {
-                domList.add(eval.daysOnMarket)
+                eval.daysOnMarket?.let { domList.add(it) }
                 scoreList.add(eval.opportunityScore)
             }
         }
@@ -146,17 +146,31 @@ object PortfolioMetricsCalculator {
         val totalEquity = sumScrapedValue - totalInvested
         val equityGrowthPercent = if (totalInvested > 0) (totalEquity / totalInvested) * 100.0 else 0.0
         val avgYield = if (yieldList.isNotEmpty()) yieldList.average() else 0.0
-        val avgDom = if (domList.isNotEmpty()) domList.average().roundToInt() else 110
-        val avgScore = if (scoreList.isNotEmpty()) scoreList.average().roundToInt() else 72
+        // Senza valutazioni con giorni sul mercato o punteggio, quella parte del calcolo
+        // non si esegue: niente media nazionale di ripiego (110gg / 72 punti).
+        val avgDom = if (domList.isNotEmpty()) domList.average().roundToInt() else null
+        val avgScore = if (scoreList.isNotEmpty()) scoreList.average().roundToInt() else null
         val yieldSpread = avgYield - ITALIAN_NATIONAL_YIELD_BENCHMARK
 
-        // Calculate Comprehensive Health Score (0 - 100)
+        // Calculate Comprehensive Health Score (0 - 100): i blocchi senza dato escono
+        // sia dal punteggio ottenuto sia dal massimo ottenibile, come per l'Opportunity Score.
         val equityScore = ((equityGrowthPercent / 30.0) * 40.0).coerceIn(0.0, 40.0)
         val yieldScore = ((avgYield / 8.5) * 30.0).coerceIn(0.0, 30.0)
-        val liquidityScore = ((180.0 - avgDom.coerceIn(40, 180)) / 140.0 * 20.0).coerceIn(0.0, 20.0)
-        val qualityScore = (avgScore / 100.0 * 10.0).coerceIn(0.0, 10.0)
+        val liquidityScore = avgDom?.let { ((180.0 - it.coerceIn(40, 180)) / 140.0 * 20.0).coerceIn(0.0, 20.0) }
+        val qualityScore = avgScore?.let { (it / 100.0 * 10.0).coerceIn(0.0, 10.0) }
 
-        val healthScore = (equityScore + yieldScore + liquidityScore + qualityScore).roundToInt().coerceIn(10, 99)
+        var puntiSalute = equityScore + yieldScore
+        var massimoSalute = 40.0 + 30.0
+        if (liquidityScore != null) {
+            puntiSalute += liquidityScore
+            massimoSalute += 20.0
+        }
+        if (qualityScore != null) {
+            puntiSalute += qualityScore
+            massimoSalute += 10.0
+        }
+
+        val healthScore = ((puntiSalute / massimoSalute) * 100.0).roundToInt().coerceIn(10, 99)
 
         val (tierLabel, tierBadge, healthColor, diagnostic) = when {
             healthScore >= 80 -> HealthTierInfo(
@@ -631,7 +645,7 @@ fun PortfolioOverviewWidget(
                 QuickHealthPill(
                     icon = Icons.Default.Timer,
                     label = "Tempo Vendita",
-                    value = "~${metrics.averageDaysOnMarket} gg",
+                    value = metrics.averageDaysOnMarket?.let { "~$it gg" } ?: "—",
                     color = CyanAccent,
                     modifier = Modifier.weight(1f)
                 )

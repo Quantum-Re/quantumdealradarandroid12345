@@ -33,7 +33,10 @@ tre interventi e un test verde.
 - Rispondi in italiano.
 
 ## Stato
-- 148 test verdi. Invarianti in ProvenanceInvariantsTest,
+- 158 test verdi. Invarianti in ProvenanceInvariantsTest,
   MacroRatesInvariantsTest, OpportunityScoreInvariantsTest,
   PredictiveDealAlertEngineTest.
+- Bonifica dei valori di ripiego chiusa: i prompt B, C e D sono stati
+  applicati e i rastrellamenti su "?: COSTANTE" e "else COSTANTE" non trovano
+  più occorrenze nei motori di calcolo.
 - Repository: Quantum-Re/quantumdealradarandroid12345

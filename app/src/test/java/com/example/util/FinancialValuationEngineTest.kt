@@ -83,7 +83,9 @@ class FinancialValuationEngineTest {
             mortgageDurationYears = 20
         )
 
-        val result = SeniorValuationEngine.performAdvancedUnderwriting(input)
+        val result = checkNotNull(SeniorValuationEngine.performAdvancedUnderwriting(input)) {
+            "con prezzo, ristrutturazione e canone tutti validi il risultato non può essere null"
+        }
 
         // Gross annual rent: 1000 * 12 = 12,000
         assertEquals(12000.0, result.grossAnnualRent, 0.01)

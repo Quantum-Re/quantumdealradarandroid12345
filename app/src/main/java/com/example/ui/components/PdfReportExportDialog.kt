@@ -337,14 +337,14 @@ fun PdfReportExportDialog(
                                 }
                             }
 
-                            val dscr = if (calcData.annualDebtService > 0) calcData.netOperatingIncome / calcData.annualDebtService else 9.99
+                            val dscr = if (calcData.annualDebtService > 0) calcData.netOperatingIncome / calcData.annualDebtService else null
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Column {
                                     Text("DSCR (Copertura Debito):", fontSize = 11.sp, color = TextSecondaryDark)
-                                    Text(if (calcData.annualDebtService > 0) String.format(Locale.ITALY, "%.2fx", dscr) else "100% Cash", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = CyanAccent)
+                                    Text(dscr?.let { String.format(Locale.ITALY, "%.2fx", it) } ?: "n/a (nessun debito)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = CyanAccent)
                                 }
                                 Column(horizontalAlignment = Alignment.End) {
                                     Text("Cash-on-Cash Return:", fontSize = 11.sp, color = TextSecondaryDark)
@@ -452,7 +452,8 @@ fun PdfReportExportDialog(
                                 appendLine("💵 Capitale Proprio (Equity): ${currencyFormat.format(calcData.initialCashRequired)}")
                                 appendLine("🏦 Mutuo Richiesto: ${currencyFormat.format(calcData.loanAmount)} (${100 - calcData.downPaymentPercent.toInt()}% LTV)")
                                 appendLine("💰 Canone Affitto: ${currencyFormat.format(calcData.estimatedMonthlyRent)}/m (${currencyFormat.format(calcData.annualGrossRent)}/anno)")
-                                appendLine("📈 DSCR (Copertura Debito): ${String.format(Locale.ITALY, "%.2fx", if (calcData.annualDebtService > 0) calcData.netOperatingIncome / calcData.annualDebtService else 9.99)}")
+                                val summaryDscr = if (calcData.annualDebtService > 0) calcData.netOperatingIncome / calcData.annualDebtService else null
+                                appendLine("📈 DSCR (Copertura Debito): ${summaryDscr?.let { String.format(Locale.ITALY, "%.2fx", it) } ?: "n/a (nessun debito)"}")
                                 appendLine("⚡ Cash-on-Cash Return: ${String.format(Locale.ITALY, "%.2f%%", calcData.cashOnCashReturnPercent)}")
                                 appendLine("💵 Cash Flow Netto: ${currencyFormat.format(calcData.monthlyNetCashFlow)}/mese (${currencyFormat.format(calcData.annualNetCashFlow)}/anno)")
                                 if (investorNotes.isNotBlank()) appendLine("📝 Note: $investorNotes")

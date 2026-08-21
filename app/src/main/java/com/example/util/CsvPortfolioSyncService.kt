@@ -138,9 +138,16 @@ object CsvPortfolioSyncService {
                 }
 
                 val price = parseFlexibleNumber(getVal("price"))
-                val estimatedValue = parseFlexibleNumber(getVal("estimatedMarketValue")).let {
-                    if (it > 0) it else if (price > 0) price else 100000.0
+                val rawEstimatedValue = parseFlexibleNumber(getVal("estimatedMarketValue"))
+
+                // Senza prezzo e senza valore di mercato la riga è incompleta: non si
+                // inventa un valore di mercato, la riga viene segnalata e scartata.
+                if (rawEstimatedValue <= 0 && price <= 0) {
+                    errors.add("Riga $rowIndex incompleta: prezzo e valore di mercato entrambi assenti.")
+                    continue
                 }
+
+                val estimatedValue = if (rawEstimatedValue > 0) rawEstimatedValue else price
                 val finalPrice = if (price > 0) price else estimatedValue
 
                 val surfaceSqm = parseFlexibleNumber(getVal("surfaceSqm")).toInt().coerceAtLeast(0)

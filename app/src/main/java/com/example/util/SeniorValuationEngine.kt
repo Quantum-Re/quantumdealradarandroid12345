@@ -194,7 +194,7 @@ object SeniorValuationEngine {
         val leveredCashOnCashPercent: Double,
         val grossRentalYieldPercent: Double,
         val capRatePercent: Double,
-        val dscr: Double, // Debt Service Coverage Ratio
+        val dscr: Double?, // Debt Service Coverage Ratio; null = nessun debito da coprire (non indefinibile a 99)
         val breakEvenOccupancyPercent: Double,
         val fiveYearIrrPercent: Double,
         val tenYearIrrPercent: Double,
@@ -205,11 +205,20 @@ object SeniorValuationEngine {
 
     /**
      * Compute institutional-grade underwriting metrics for real estate investors.
+     * Restituisce null se prezzo d'acquisto, costo di ristrutturazione o canone mensile
+     * mancano o non sono validi: senza queste tre grandezze non si può produrre una
+     * perizia, e restituire un valore di ripiego produrrebbe una perizia falsa.
+     * Un costo di ristrutturazione pari a zero è legittimo (nessuna ristrutturazione);
+     * solo un valore negativo è invalido.
      */
-    fun performAdvancedUnderwriting(input: AdvancedUnderwritingInput): AdvancedUnderwritingResult {
-        val safePurchase = if (input.purchasePrice > 0) input.purchasePrice else 100000.0
-        val safeRenov = if (input.renovationCost >= 0) input.renovationCost else 15000.0
-        val safeRentMonthly = if (input.estimatedMonthlyRent > 0) input.estimatedMonthlyRent else 600.0
+    fun performAdvancedUnderwriting(input: AdvancedUnderwritingInput): AdvancedUnderwritingResult? {
+        if (input.purchasePrice <= 0 || input.renovationCost < 0 || input.estimatedMonthlyRent <= 0) {
+            return null
+        }
+
+        val safePurchase = input.purchasePrice
+        val safeRenov = input.renovationCost
+        val safeRentMonthly = input.estimatedMonthlyRent
 
         val acquisitionClosingCosts = safePurchase * 0.05 // 5% legal, taxes, notary, broker
         val totalInitialOutlay = safePurchase + safeRenov + acquisitionClosingCosts
@@ -248,7 +257,8 @@ object SeniorValuationEngine {
         val unleveredCashOnCashPercent = if (totalInitialOutlay > 0) ((netOperatingIncome - annualIncomeTaxes) / totalInitialOutlay) * 100.0 else 0.0
         val leveredCashOnCashPercent = if (equityInvested > 0) (annualNetCashFlow / equityInvested) * 100.0 else 0.0
 
-        val dscr = if (annualDebtService > 0) netOperatingIncome / annualDebtService else 9.9
+        // DSCR indefinito senza debito: non è "eccellente" (99), è semplicemente non applicabile.
+        val dscr = if (annualDebtService > 0) netOperatingIncome / annualDebtService else null
         val breakEvenOccupancyPercent = if (grossAnnualRent > 0) ((totalAnnualOperatingExpenses + annualDebtService) / grossAnnualRent) * 100.0 else 0.0
 
         // Fix & Flip metrics

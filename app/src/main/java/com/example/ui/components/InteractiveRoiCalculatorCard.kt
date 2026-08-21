@@ -664,6 +664,15 @@ fun InteractiveRoiCalculatorCard(
                             )
                         }
 
+                        if (underwriting == null) {
+                            Text(
+                                text = "Dati insufficienti per la perizia",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AmberGold,
+                                modifier = Modifier.testTag("roi_calc_underwriting_unavailable")
+                            )
+                        } else {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -678,9 +687,9 @@ fun InteractiveRoiCalculatorCard(
                             )
                             HeroMetricBox(
                                 label = "DSCR Mutuo",
-                                value = "${String.format(Locale.US, "%.2f", underwriting.dscr)}x",
-                                subtext = if (underwriting.dscr >= 1.25) "✅ Copertura Debito Solida" else "⚠️ Rischio Finanziario",
-                                valueColor = if (underwriting.dscr >= 1.25) EmeraldGreen else AmberGold,
+                                value = underwriting.dscr?.let { "${String.format(Locale.US, "%.2f", it)}x" } ?: "n/a (nessun debito)",
+                                subtext = if (underwriting.dscr == null) "Nessun mutuo da coprire" else if (underwriting.dscr >= 1.25) "✅ Copertura Debito Solida" else "⚠️ Rischio Finanziario",
+                                valueColor = if (underwriting.dscr == null) TextSecondaryDark else if (underwriting.dscr >= 1.25) EmeraldGreen else AmberGold,
                                 testTag = "roi_calc_dscr_value",
                                 modifier = Modifier.weight(1f)
                             )
@@ -714,6 +723,7 @@ fun InteractiveRoiCalculatorCard(
                                     )
                                 }
                             }
+                        }
                         }
                     }
                 }

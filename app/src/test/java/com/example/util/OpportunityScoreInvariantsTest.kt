@@ -30,7 +30,8 @@ class OpportunityScoreInvariantsTest {
         avgSalePriceSqM = prezzoMq,
         avgRentPriceSqM = 20.0,
         avgDaysOnMarket = 80,
-        absorptionRatePercent = 80.0
+        absorptionRatePercent = 80.0,
+        marketSaturationScore = 40
     )
 
     private fun immobile(prezzo: Double, mq: Int = 100, distress: String = "") = Property(
@@ -111,5 +112,79 @@ class OpportunityScoreInvariantsTest {
         assertTrue(eval.scoreAffidabile)
         assertTrue("uno sconto del 40% deve produrre un punteggio elevato", eval.opportunityScore >= 65)
         assertNotEquals(OpportunityTier.AVOID, eval.tier)
+    }
+
+    // ------------------------------------------------ tutti e sei i campi di misura
+
+    /**
+     * Il difetto originale è stato corretto un campo alla volta, e ogni volta è
+     * rientrato da un altro campo. Questo test copre tutti e sei insieme: se
+     * qualcuno reintroduce una costante di ripiego su uno qualsiasi, fallisce.
+     */
+    @Test
+    fun `nessuno dei sei campi di misura viene sostituito da una costante`() {
+        val eval = PropertyOpportunityEngine.evaluateProperty(
+            immobile(300000.0),
+            ProvinceScrapedKpi(
+                locationName = "Milano",
+                province = "MI",
+                region = "Lombardia",
+                avgSalePriceSqM = 4000.0
+                // gli altri cinque restano null
+            )
+        )
+
+        assertNull("giorni sul mercato non deve diventare 90", eval.daysOnMarket)
+        assertNull("saturazione non deve diventare 50", eval.marketSaturationScore)
+        assertNull("assorbimento non deve diventare 60.0", eval.absorptionRatePercent)
+        assertNull("il rendimento lordo non si calcola senza canone", eval.grossRentalYieldPotential)
+
+        assertFalse("con quattro dati mancanti il punteggio non è affidabile", eval.scoreAffidabile)
+        assertEquals(
+            "devono essere dichiarati tutti e quattro i dati mancanti",
+            4, eval.missingMarketData.size
+        )
+    }
+
+    @Test
+    fun `un immobile non distressed non riceve punti per non esserlo`() {
+        val conDistress = PropertyOpportunityEngine.evaluateProperty(
+            immobile(200000.0, distress = "ASTA"), kpiMercato(4000.0)
+        )
+        val senzaDistress = PropertyOpportunityEngine.evaluateProperty(
+            immobile(200000.0, distress = ""), kpiMercato(4000.0)
+        )
+
+        assertTrue(
+            "il punteggio con distress deve superare quello senza di almeno 10 punti: " +
+                "se la differenza è piccola, il ramo 'else' sta ancora regalando punti",
+            conDistress.opportunityScore - senzaDistress.opportunityScore >= 10
+        )
+    }
+
+    /**
+     * La rinormalizzazione deve essere neutra: togliere un dato non deve
+     * premiare né penalizzare, deve solo ridurre il numero di elementi su cui
+     * il giudizio si basa.
+     */
+    @Test
+    fun `togliere un dato non fa crollare il punteggio`() {
+        val completo = PropertyOpportunityEngine.evaluateProperty(
+            immobile(200000.0, distress = "ASTA"), kpiMercato(4000.0)
+        )
+        val senzaVelocita = PropertyOpportunityEngine.evaluateProperty(
+            immobile(200000.0, distress = "ASTA"),
+            kpiMercato(4000.0).copy(avgDaysOnMarket = null, absorptionRatePercent = null)
+        )
+
+        val scarto = kotlin.math.abs(completo.opportunityScore - senzaVelocita.opportunityScore)
+        assertTrue(
+            "scarto di $scarto punti: la rinormalizzazione non è neutra",
+            scarto <= 12
+        )
+        assertFalse(
+            "va comunque dichiarato che il punteggio è parziale",
+            senzaVelocita.scoreAffidabile
+        )
     }
 }

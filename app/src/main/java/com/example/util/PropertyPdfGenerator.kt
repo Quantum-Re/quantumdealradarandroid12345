@@ -38,6 +38,11 @@ object PropertyPdfGenerator {
 
             val paint = Paint().apply { isAntiAlias = true }
 
+            // Nessuna superficie inventata: se manca, il PDF dichiara N/D e omette i €/m².
+            val hasSurface = deal.surfaceSqm > 0
+            fun perSqmText(totalValue: Double): String =
+                if (hasSurface) "${(totalValue / deal.surfaceSqm).toInt()} €/m²" else "N/D"
+
             // Colors
             val navyBg = android.graphics.Color.rgb(15, 23, 42) // #0F172A
             val cardBg = android.graphics.Color.rgb(30, 41, 59) // #1E293B
@@ -104,7 +109,8 @@ object PropertyPdfGenerator {
 
             paint.color = textMuted
             paint.textSize = 10f
-            canvas.drawText("Tipologia: ${deal.propertyType}  |  Superficie: ${deal.surfaceSqm} m²  |  Fonte: ${deal.sourceName}", 40f, 178f, paint)
+            val surfaceLabel = if (hasSurface) "${deal.surfaceSqm} m²" else "N/D"
+            canvas.drawText("Tipologia: ${deal.propertyType}  |  Superficie: $surfaceLabel  |  Fonte: ${deal.sourceName}", 40f, 178f, paint)
 
             if (!deal.auctionDate.isNullOrBlank()) {
                 paint.color = amberGold
@@ -129,7 +135,7 @@ object PropertyPdfGenerator {
                 rect = RectF(25f, 255f, 195f, 325f),
                 label = "PREZZO RICHIESTO",
                 value = currencyFormat.format(deal.askingPrice),
-                subtext = "${(deal.askingPrice / if (deal.surfaceSqm > 0) deal.surfaceSqm else 1).toInt()} €/m²",
+                subtext = perSqmText(deal.askingPrice),
                 accentColor = cyanAccent
             )
 
@@ -232,16 +238,19 @@ object PropertyPdfGenerator {
             canvas.drawRoundRect(trendCardRect, 8f, 8f, paint)
             paint.style = Paint.Style.FILL
 
-            val avgZonePriceSqm = (deal.estimatedMarketValue / if (deal.surfaceSqm > 0) deal.surfaceSqm else 1).toInt()
-            val propertyPriceSqm = (deal.askingPrice / if (deal.surfaceSqm > 0) deal.surfaceSqm else 1).toInt()
+            val avgZonePriceSqm = if (hasSurface) (deal.estimatedMarketValue / deal.surfaceSqm).toInt() else null
+            val propertyPriceSqm = if (hasSurface) (deal.askingPrice / deal.surfaceSqm).toInt() else null
 
             paint.color = textWhite
             paint.textSize = 10.5f
             paint.isFakeBoldText = true
-            canvas.drawText("• Valore Medio di Zona (${deal.location}): ~${avgZonePriceSqm} €/m²", 40f, rowY + 25f, paint)
+            canvas.drawText("• Valore Medio di Zona (${deal.location}): ${avgZonePriceSqm?.let { "~$it €/m²" } ?: "N/D"}", 40f, rowY + 25f, paint)
 
             paint.color = cyanAccent
-            canvas.drawText("• Prezzo Richiesto Immobile: ~${propertyPriceSqm} €/m² (Sconto di ${avgZonePriceSqm - propertyPriceSqm} €/m²)", 40f, rowY + 45f, paint)
+            val requestedPriceText = if (avgZonePriceSqm != null && propertyPriceSqm != null) {
+                "~$propertyPriceSqm €/m² (Sconto di ${avgZonePriceSqm - propertyPriceSqm} €/m²)"
+            } else "N/D"
+            canvas.drawText("• Prezzo Richiesto Immobile: $requestedPriceText", 40f, rowY + 45f, paint)
 
             paint.color = emeraldGreen
             canvas.drawText("• Posizionamento Opportunità: ${deal.discountPercent}% sotto la media comparativa locale.", 40f, rowY + 65f, paint)
@@ -535,10 +544,15 @@ object PropertyPdfGenerator {
 
             currentY += 14f
 
-            // DSCR calculation
-            val dscr = if (calcData.annualDebtService > 0) calcData.netOperatingIncome / calcData.annualDebtService else 9.99
-            val dscrStr = if (calcData.annualDebtService > 0) String.format(Locale.ITALY, "%.2fx", dscr) else "100% Cash"
-            val dscrSubtext = if (dscr >= 1.3) "Ottima copertura (> 1.30x)" else if (dscr >= 1.15) "Copertura idonea (> 1.15x)" else "Copertura limitata"
+            // DSCR calculation: indefinito senza debito, non un 9.99 fittizio.
+            val dscr = if (calcData.annualDebtService > 0) calcData.netOperatingIncome / calcData.annualDebtService else null
+            val dscrStr = dscr?.let { String.format(Locale.ITALY, "%.2fx", it) } ?: "n/a (nessun debito)"
+            val dscrSubtext = when {
+                dscr == null -> "Nessun mutuo da coprire"
+                dscr >= 1.3 -> "Ottima copertura (> 1.30x)"
+                dscr >= 1.15 -> "Copertura idonea (> 1.15x)"
+                else -> "Copertura limitata"
+            }
 
             // 4 Metric cards
             val cardW = 127f
@@ -551,7 +565,7 @@ object PropertyPdfGenerator {
                 "DSCR (DEBT COVERAGE)",
                 dscrStr,
                 dscrSubtext,
-                if (dscr >= 1.25) emeraldDark else amberGold
+                if (dscr == null || dscr >= 1.25) emeraldDark else amberGold
             )
 
             // Box 2: Cash-on-Cash Return
@@ -655,12 +669,14 @@ object PropertyPdfGenerator {
             val stressVacancyRent = calcData.annualGrossRent * 0.916 // 1 month vacancy (8.3%)
             val stressNoi = (stressVacancyRent - (calcData.annualExpenses * 1.15)).coerceAtLeast(0.0)
             val stressNetCashflow = stressNoi - stressAnnualDebt
-            val stressDscr = if (stressAnnualDebt > 0) stressNoi / stressAnnualDebt else 9.99
+            val stressDscr = if (stressAnnualDebt > 0) stressNoi / stressAnnualDebt else null
+            val prudentDscrStr = dscr?.let { String.format(Locale.ITALY, "%.2fx", (it * 0.88).coerceAtLeast(1.0)) } ?: "n/a (nessun debito)"
+            val stressDscrStr = stressDscr?.let { String.format(Locale.ITALY, "%.2fx", it) } ?: "n/a (nessun debito)"
 
             val scenarioRows = listOf(
                 listOf("Scenario Base (Atteso)", "Tasso ${calcData.mortgageRatePercent}%, Sfitto 0%", "${currencyFormat.format(calcData.monthlyNetCashFlow)}/m", dscrStr),
-                listOf("Scenario Prudenziale", "Tasso +0.75%, Sfitto 4%", "${currencyFormat.format((calcData.annualNetCashFlow * 0.85) / 12.0)}/m", String.format(Locale.ITALY, "%.2fx", (dscr * 0.88).coerceAtLeast(1.0))),
-                listOf("Stress Test Estremo", "Tasso +1.50%, Sfitto 1 mese (8.3%)", "${currencyFormat.format(stressNetCashflow / 12.0)}/m", if (stressAnnualDebt > 0) String.format(Locale.ITALY, "%.2fx", stressDscr) else "100% Cash")
+                listOf("Scenario Prudenziale", "Tasso +0.75%, Sfitto 4%", "${currencyFormat.format((calcData.annualNetCashFlow * 0.85) / 12.0)}/m", prudentDscrStr),
+                listOf("Stress Test Estremo", "Tasso +1.50%, Sfitto 1 mese (8.3%)", "${currencyFormat.format(stressNetCashflow / 12.0)}/m", stressDscrStr)
             )
 
             var scY = p2Y + 20f
@@ -1643,7 +1659,9 @@ object PropertyPdfGenerator {
             propertyType = property.propertyType.ifBlank { "Residenziale" },
             askingPrice = property.price,
             estimatedMarketValue = if (property.estimatedMarketValue > 0) property.estimatedMarketValue else property.price * 1.25,
-            surfaceSqm = if (property.surfaceSqm > 0) property.surfaceSqm else 85,
+            // Nessuna superficie inventata: se manca resta 0, la convenzione già usata in
+            // tutto il progetto per "dato non disponibile" su questo campo non-nullable.
+            surfaceSqm = property.surfaceSqm,
             notes = property.notes
         )
         return generatePdfForDeal(context, deal)

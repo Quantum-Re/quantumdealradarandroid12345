@@ -68,10 +68,10 @@ data class PropertyOpportunityEvaluation(
     val undervaluedPercent: Double,
     val alphaEquityGain: Double,
     val potentialRoiPercent: Double,
-    val grossRentalYieldPotential: Double,
-    val daysOnMarket: Int,
-    val marketSaturationScore: Int,
-    val absorptionRatePercent: Double,
+    val grossRentalYieldPotential: Double?,
+    val daysOnMarket: Int?,
+    val marketSaturationScore: Int?,
+    val absorptionRatePercent: Double?,
     val opportunityScore: Int, // 0 - 100
     val scoreAffidabile: Boolean,
     val missingMarketData: List<String>,
@@ -188,10 +188,11 @@ object PropertyOpportunityEngine {
             ((exitValue - totalInvested) / totalInvested) * 100.0
         } else 0.0
 
-        val rentPriceSqM = scrapedKpi.avgRentPriceSqM ?: 0.0
-        val grossRentalYieldPotential = if (property.price > 0 && rentPriceSqM > 0) {
+        val rentPriceSqM = scrapedKpi.avgRentPriceSqM
+        val grossRentalYieldPotential = if (rentPriceSqM != null && property.price > 0) {
             (rentPriceSqM * surface * 12.0 / property.price) * 100.0
-        } else 0.0
+        } else null
+        val yieldPerScore = grossRentalYieldPotential ?: 0.0
 
         // 1. Undervaluation Spread Score (0 - 50 points)
         val undervalueScore = ((undervaluedPercent / 35.0) * 50.0).coerceIn(-50.0, 50.0)
@@ -200,19 +201,53 @@ object PropertyOpportunityEngine {
         val isDistressed = property.distressStatus.isNotBlank() &&
                 !property.distressStatus.equals("Libero", ignoreCase = true) &&
                 !property.distressStatus.equals("Nessuno", ignoreCase = true)
-        val distressScore = if (isDistressed) 15.0 else 8.0
-        val targetMarginBonus = if (property.targetResalePrice > scrapedMarketValue) 5.0 else 2.0
+        val distressScore = if (isDistressed) 15.0 else 0.0
+        val targetMarginBonus = if (property.targetResalePrice > scrapedMarketValue) 5.0 else 0.0
 
-        // 3. Zone Velocity & Liquidity (0 - 20 points)
-        val safeDom = (scrapedKpi.avgDaysOnMarket ?: 90).coerceIn(30, 200)
-        val domScore = ((200.0 - safeDom) / 170.0).coerceIn(0.0, 1.0) * 12.0
-        val safeAbsorption = (scrapedKpi.absorptionRatePercent ?: 60.0)
-        val absorptionScore = (safeAbsorption / 90.0).coerceIn(0.0, 1.0) * 8.0
+        // 3. Zone Velocity & Liquidity (0 - 20 punti)
+        // Se il dato manca, il blocco non contribuisce e i suoi punti escono dal
+        // massimo teorico: il punteggio viene rinormalizzato sul massimo
+        // effettivamente ottenibile. Un dato mancante non vale zero punti
+        // (sarebbe una penalizzazione inventata) e non vale il valore medio
+        // (sarebbe un dato inventato): esce dal calcolo.
+        val dom = scrapedKpi.avgDaysOnMarket
+        val domScore = dom?.let { ((200.0 - it.coerceIn(30, 200)) / 170.0).coerceIn(0.0, 1.0) * 12.0 }
+        val absorption = scrapedKpi.absorptionRatePercent
+        val absorptionScore = absorption?.let { (it / 90.0).coerceIn(0.0, 1.0) * 8.0 }
 
         // 4. Rental Yield Alternative Safety (0 - 10 points)
-        val yieldScore = (grossRentalYieldPotential / 9.0).coerceIn(0.0, 1.0) * 10.0
+        val yieldScore = (yieldPerScore / 9.0).coerceIn(0.0, 1.0) * 10.0
 
-        val rawTotal = undervalueScore + distressScore + targetMarginBonus + domScore + absorptionScore + yieldScore
+        // Massimo teorico per blocco: undervalue 50, distress 15, margine 5,
+        // dom 12, assorbimento 8, rendimento 10 = 100.
+        // I blocchi senza dato escono sia dal numeratore sia dal denominatore.
+        var puntiOttenuti = undervalueScore + distressScore + targetMarginBonus + yieldScore
+        var massimoOttenibile = 50.0 + 15.0 + 5.0 + 10.0
+
+        val datiMancanti = mutableListOf<String>()
+
+        if (domScore != null) {
+            puntiOttenuti += domScore
+            massimoOttenibile += 12.0
+        } else {
+            datiMancanti.add("giorni medi di permanenza sul mercato")
+        }
+
+        if (absorptionScore != null) {
+            puntiOttenuti += absorptionScore
+            massimoOttenibile += 8.0
+        } else {
+            datiMancanti.add("tasso di assorbimento della zona")
+        }
+
+        if (scrapedKpi.marketSaturationScore == null) {
+            datiMancanti.add("indice di saturazione della zona")
+        }
+        if (scrapedKpi.avgRentPriceSqM == null) {
+            datiMancanti.add("canone medio al m²")
+        }
+
+        val rawTotal = (puntiOttenuti / massimoOttenibile) * 100.0
         val opportunityScore = rawTotal.roundToInt().coerceIn(0, 99)
         val tier = OpportunityTier.fromScore(opportunityScore)
 
@@ -235,7 +270,10 @@ object PropertyOpportunityEngine {
             OpportunityTier.ULTRA -> "Prezzo di acquisto a €$formattedPpsqm/m² contro una media di mercato di €$formattedMarketPpsqm/m². Con tempi medi di vendita a soli $domText, puoi anticipare l'uscita con un margine extra o impostare un prezzo resale più aggressivo."
             OpportunityTier.HIGH -> "Il differenziale positivo garantisce un cuscinetto di sicurezza di oltre €${String.format(Locale.ITALY, "%,.0f", alphaEquityGain)} rispetto ai costi totali previsti. Ottima liquidità di zona (assorbimento $absorptionText)."
             OpportunityTier.MODERATE -> "In linea con i valori di mercato (€$formattedPpsqm/m² vs €$formattedMarketPpsqm/m²). La redditività dipende interamente dall'ottimizzazione del capitolato di ristrutturazione."
-            OpportunityTier.LOW -> "Il costo di carico (€$formattedPpsqm/m²) è vicino al prezzo medio di vendita. Ricalibrare i costi di cantiere o valutare la conversione in locazione ad alta resa (€${String.format(Locale.ITALY, "%.1f", grossRentalYieldPotential)}% lordo)."
+            OpportunityTier.LOW -> {
+                val yieldText = grossRentalYieldPotential?.let { String.format(Locale.ITALY, "%.1f%%", it) } ?: "N/D"
+                "Il costo di carico (€$formattedPpsqm/m²) è vicino al prezzo medio di vendita. Ricalibrare i costi di cantiere o valutare la conversione in locazione ad alta resa ($yieldText lordo)."
+            }
             OpportunityTier.AVOID -> "Prezzo per m² (€$formattedPpsqm) nettamente superiore ai valori di mercato (€$formattedMarketPpsqm). Operazione ad alto rischio di minusvalenza."
         }
 
@@ -252,12 +290,12 @@ object PropertyOpportunityEngine {
             alphaEquityGain = alphaEquityGain,
             potentialRoiPercent = potentialRoiPercent,
             grossRentalYieldPotential = grossRentalYieldPotential,
-            daysOnMarket = scrapedKpi.avgDaysOnMarket ?: 90,
-            marketSaturationScore = scrapedKpi.marketSaturationScore ?: 50,
-            absorptionRatePercent = scrapedKpi.absorptionRatePercent ?: 60.0,
+            daysOnMarket = scrapedKpi.avgDaysOnMarket,
+            marketSaturationScore = scrapedKpi.marketSaturationScore,
+            absorptionRatePercent = scrapedKpi.absorptionRatePercent,
             opportunityScore = opportunityScore,
-            scoreAffidabile = true,
-            missingMarketData = emptyList(),
+            scoreAffidabile = datiMancanti.isEmpty(),
+            missingMarketData = datiMancanti.toList(),
             tier = tier,
             headline = headline,
             actionableInsight = actionableInsight,

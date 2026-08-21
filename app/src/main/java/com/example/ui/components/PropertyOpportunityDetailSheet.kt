@@ -364,7 +364,7 @@ fun PropertyOpportunityDetailSheet(
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    text = "${evaluation.daysOnMarket} gg",
+                                    text = evaluation.daysOnMarket?.let { "$it gg" } ?: "N/D",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -389,7 +389,7 @@ fun PropertyOpportunityDetailSheet(
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    text = "${String.format(Locale.US, "%.0f", evaluation.absorptionRatePercent)}%",
+                                    text = evaluation.absorptionRatePercent?.let { "${String.format(Locale.US, "%.0f", it)}%" } ?: "N/D",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -414,7 +414,7 @@ fun PropertyOpportunityDetailSheet(
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    text = "${String.format(Locale.US, "%.1f", evaluation.grossRentalYieldPotential)}%",
+                                    text = evaluation.grossRentalYieldPotential?.let { "${String.format(Locale.US, "%.1f", it)}%" } ?: "N/D",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface

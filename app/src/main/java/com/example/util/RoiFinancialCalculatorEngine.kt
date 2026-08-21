@@ -17,7 +17,7 @@ data class FinancialAnalysisOutput(
     val cashOnCashReturnPercent: Double,
     val capRatePercent: Double,
     val grossYieldPercent: Double,
-    val dscr: Double,
+    val dscr: Double?, // null = nessun debito da coprire
     val breakEvenOccupancyPercent: Double,
     val flipProfit: Double,
     val flipRoiPercent: Double
@@ -80,7 +80,7 @@ object RoiFinancialCalculatorEngine {
         val capRate = if (totalCost > 0.0) (noi / totalCost) * 100.0 else 0.0
         val grossYield = if (totalCost > 0.0) (rawGrossRent / totalCost) * 100.0 else 0.0
 
-        val dscr = if (annualDebtService > 0.0) noi / annualDebtService else 99.0
+        val dscr = if (annualDebtService > 0.0) noi / annualDebtService else null
         val breakEvenOccupancy = if (rawGrossRent > 0.0) {
             ((annualDebtService + annualExpenses) / rawGrossRent) * 100.0
         } else {
@@ -104,7 +104,7 @@ object RoiFinancialCalculatorEngine {
             cashOnCashReturnPercent = round1(cocPercent),
             capRatePercent = round1(capRate),
             grossYieldPercent = round1(grossYield),
-            dscr = round2(dscr),
+            dscr = dscr?.let { round2(it) },
             breakEvenOccupancyPercent = round1(breakEvenOccupancy),
             flipProfit = round2(flipProfit),
             flipRoiPercent = round1(flipRoi)

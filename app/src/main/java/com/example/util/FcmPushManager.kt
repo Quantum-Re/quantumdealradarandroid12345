@@ -546,14 +546,22 @@ object FcmPushManager {
         oldStatus: String = "In Corso",
         newStatus: String = "2° Incanto Deserto - Ribasso -25%",
         customNote: String = "Algoritmo Quantum Radar: Sottocosto del 38% rispetto al valore medio di zona OMI (€4.200/mq)."
-    ): FcmPushAlert {
+    ): FcmPushAlert? {
         ensureChannels(context)
 
-        val discountPercent = if (oldPrice > 0) ((oldPrice - newPrice) / oldPrice * 100.0) else 25.0
+        // Senza un prezzo precedente noto non esiste una variazione da calcolare.
+        val discountPercent = if (oldPrice > 0) ((oldPrice - newPrice) / oldPrice * 100.0) else null
+
+        // Una notifica di "ribasso" senza un ribasso reale da comunicare non va inviata.
+        if (type == FcmPushType.PRICE_DROP && discountPercent == null) {
+            return null
+        }
+
+        val discountText = discountPercent?.let { String.format(Locale.ITALY, "%.0f", it) } ?: "N/D"
 
         val (title, body) = when (type) {
             FcmPushType.PRICE_DROP -> Pair(
-                "⚡ Ribasso Immediato: -$discountPercent% su $propertyTitle",
+                "⚡ Ribasso Immediato: -$discountText% su $propertyTitle",
                 "Prezzo ribassato da ${currencyFormat.format(oldPrice)} a ${currencyFormat.format(newPrice)}. $customNote"
             )
             FcmPushType.STATUS_CHANGE -> Pair(
@@ -562,7 +570,7 @@ object FcmPushManager {
             )
             FcmPushType.GRAVE_DANCER_DISTRESS -> Pair(
                 "🔥 Grave Dancer™ Allarme Distress: $city",
-                "Individuata forte asimmetria di prezzo (-$discountPercent%). Margine operativo stimato: +€ 85.000."
+                "Individuata forte asimmetria di prezzo (-$discountText%). Margine operativo stimato: +€ 85.000."
             )
             FcmPushType.BRIEF_MATCH -> Pair(
                 "🎯 Match Investor Brief: Nuovo Deal a $city",

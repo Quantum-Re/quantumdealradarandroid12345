@@ -56,15 +56,15 @@ fun SeniorAppraisalDialog(
         coveredSqMText, basePriceSqMText, terraceSqMText, cellarSqMText, gardenSqMText, sanatoriaCostText,
         selectedCondition, selectedFloor, hasElevator, selectedEnergyClass, selectedOccupancy, hasGarage, hasPanoramicView
     ) {
-        // Nessuna superficie coperta di ripiego: senza un valore valido la perizia non si calcola.
+        // Nessuna superficie coperta o prezzo base di ripiego: senza valori validi la perizia non si calcola.
         val coveredSqM = coveredSqMText.toDoubleOrNull()
-        val basePriceSqM = basePriceSqMText.toDoubleOrNull() ?: 2200.0
+        val basePriceSqM = basePriceSqMText.toDoubleOrNull()
         val terraceSqM = terraceSqMText.toDoubleOrNull() ?: 0.0
         val cellarSqM = cellarSqMText.toDoubleOrNull() ?: 0.0
         val gardenSqM = gardenSqMText.toDoubleOrNull() ?: 0.0
         val sanatoriaCost = sanatoriaCostText.toDoubleOrNull() ?: 0.0
 
-        if (coveredSqM == null) {
+        if (coveredSqM == null || basePriceSqM == null) {
             null
         } else {
             val input = SeniorValuationEngine.ValuationInput(
@@ -165,7 +165,7 @@ fun SeniorAppraisalDialog(
                             val result = valuationResult
                             if (result == null) {
                                 Text(
-                                    text = "N/D — superficie coperta non valida",
+                                    text = "N/D — superficie coperta o prezzo base di zona non validi",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.error

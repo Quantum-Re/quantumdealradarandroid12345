@@ -440,8 +440,10 @@ fun MarketTrendDrawer(
 
 private fun generateSampleReportForRegion(region: String, deals: List<PropertyDeal>): String {
     val dealCount = deals.size
-    val avgPrice = if (deals.isNotEmpty()) deals.map { it.askingPrice }.average().toInt() else 195000
-    val formattedAvg = NumberFormat.getCurrencyInstance(Locale.ITALY).apply { maximumFractionDigits = 0 }.format(avgPrice)
+    val avgPrice = if (deals.isNotEmpty()) deals.map { it.askingPrice }.average().toInt() else null
+    val formattedAvg = avgPrice?.let {
+        NumberFormat.getCurrencyInstance(Locale.ITALY).apply { maximumFractionDigits = 0 }.format(it)
+    } ?: "N/D"
 
     return """
         📊 **SINTESI TREND MENSILE ($region)**
@@ -481,35 +483,29 @@ fun RegionPriceTrendChart(
 ) {
     val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale.ITALY).apply { maximumFractionDigits = 0 } }
 
+    // Senza annunci reali non esiste un prezzo medio di zona: nessuna media
+    // fittizia per città, nessun valore di ripiego. Il grafico non si disegna.
     val trendPoints = remember(region, regionDeals) {
-        val basePriceSqm = if (regionDeals.isNotEmpty()) {
-            val valid = regionDeals.filter { it.surfaceSqm > 0 }
-            if (valid.isNotEmpty()) valid.map { it.askingPrice / it.surfaceSqm }.average() else 2600.0
+        val valid = regionDeals.filter { it.surfaceSqm > 0 }
+        val basePriceSqm = if (valid.isNotEmpty()) valid.map { it.askingPrice / it.surfaceSqm }.average() else null
+
+        if (basePriceSqm == null) {
+            null
         } else {
-            when (region.lowercase(Locale.ROOT)) {
-                "milano" -> 3850.0
-                "roma" -> 3100.0
-                "bologna" -> 2900.0
-                "firenze" -> 3200.0
-                "torino" -> 1950.0
-                "napoli" -> 1800.0
-                else -> 2400.0
+            val months = listOf("Set", "Ott", "Nov", "Dic", "Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago")
+            val multiplier = listOf(0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 1.0, 1.02, 1.03, 1.05)
+
+            months.mapIndexed { idx, m ->
+                val factor = multiplier[idx]
+                val asking = (basePriceSqm * factor)
+                val market = (basePriceSqm * factor * 1.18)
+                RegionalTrendPoint(
+                    month = m,
+                    askingPricePerSqm = asking,
+                    marketValuePerSqm = market,
+                    avgPriceTotal = asking * 85
+                )
             }
-        }
-
-        val months = listOf("Set", "Ott", "Nov", "Dic", "Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago")
-        val multiplier = listOf(0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 1.0, 1.02, 1.03, 1.05)
-
-        months.mapIndexed { idx, m ->
-            val factor = multiplier[idx]
-            val asking = (basePriceSqm * factor)
-            val market = (basePriceSqm * factor * 1.18)
-            RegionalTrendPoint(
-                month = m,
-                askingPricePerSqm = asking,
-                marketValuePerSqm = market,
-                avgPriceTotal = asking * 85
-            )
         }
     }
 
@@ -561,6 +557,15 @@ fun RegionPriceTrendChart(
                 }
             }
 
+            if (trendPoints == null) {
+                Text(
+                    text = "Nessun dato disponibile per il periodo",
+                    color = AmberGold,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+            } else {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -779,6 +784,7 @@ fun RegionPriceTrendChart(
                     Box(modifier = Modifier.size(10.dp).background(AmberGold, CircleShape))
                     Text("Valore Mercato Stimato", color = TextSecondaryDark, fontSize = 10.sp)
                 }
+            }
             }
         }
     }
