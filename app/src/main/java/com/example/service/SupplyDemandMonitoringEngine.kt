@@ -95,15 +95,15 @@ object SupplyDemandMonitoringEngine {
      * Low value (0-39) = Oversupply / Glut, sluggish demand (Buyer's Market).
      */
     fun computeSupplyDemandRatio(
-        saturationScore: Int?,
-        daysOnMarket: Int?,
-        absorptionRate: Double?,
-        saleTrendYoY: Double?,
-        rentTrendYoY: Double?
+        saturationScore: Int,
+        daysOnMarket: Int,
+        absorptionRate: Double,
+        saleTrendYoY: Double,
+        rentTrendYoY: Double
     ): Double {
-        val safeAbsorption = (absorptionRate ?: 60.0).coerceIn(10.0, 95.0)
-        val safeDom = (daysOnMarket ?: 90).coerceIn(30, 240)
-        val safeSat = (saturationScore ?: 50).coerceIn(5, 95)
+        val safeAbsorption = absorptionRate.coerceIn(10.0, 95.0)
+        val safeDom = daysOnMarket.coerceIn(30, 240)
+        val safeSat = saturationScore.coerceIn(5, 95)
 
         // Absorption component (0 to 40 pts)
         val absorptionScore = (safeAbsorption / 95.0) * 40.0
@@ -173,24 +173,49 @@ object SupplyDemandMonitoringEngine {
                     val kpiResult = MarketEstimateService.scrapeMarketKpis(location)
                     val kpi = kpiResult.getOrNull() ?: continue
 
+                    val saturation = kpi.marketSaturationScore
+                    val dom = kpi.avgDaysOnMarket
+                    val absorption = kpi.absorptionRatePercent
+                    val salePrice = kpi.avgSalePriceSqM
+                    val rentPrice = kpi.avgRentPriceSqM
+                    val saleTrend = kpi.saleTrendYoY
+                    val rentTrend = kpi.rentTrendYoY
+
+                    if (saturation == null || dom == null || absorption == null ||
+                        salePrice == null || rentPrice == null ||
+                        saleTrend == null || rentTrend == null
+                    ) {
+                        val mancanti = buildList {
+                            if (saturation == null) add("saturazione")
+                            if (dom == null) add("giorni sul mercato")
+                            if (absorption == null) add("tasso di assorbimento")
+                            if (salePrice == null) add("prezzo di vendita al m2")
+                            if (rentPrice == null) add("canone al m2")
+                            if (saleTrend == null) add("trend vendita")
+                            if (rentTrend == null) add("trend affitto")
+                        }
+                        Log.w(TAG, "Snapshot non creato per $location: dati mancanti = ${mancanti.joinToString()}")
+                        continue
+                    }
+
                     val currentSdr = computeSupplyDemandRatio(
-                        saturationScore = kpi.marketSaturationScore,
-                        daysOnMarket = kpi.avgDaysOnMarket,
-                        absorptionRate = kpi.absorptionRatePercent,
-                        saleTrendYoY = kpi.saleTrendYoY,
-                        rentTrendYoY = kpi.rentTrendYoY
+                        saturationScore = saturation,
+                        daysOnMarket = dom,
+                        absorptionRate = absorption,
+                        saleTrendYoY = saleTrend,
+                        rentTrendYoY = rentTrend
                     )
 
                     val currentSnapshot = SupplyDemandSnapshot(
                         location = kpi.locationName.ifBlank { location },
                         timestamp = System.currentTimeMillis(),
-                        marketSaturation = kpi.marketSaturationScore ?: 50,
-                        daysOnMarket = kpi.avgDaysOnMarket ?: 90,
-                        absorptionRatePercent = kpi.absorptionRatePercent ?: 60.0,
-                        avgSalePriceSqM = kpi.avgSalePriceSqM ?: 2000.0,
-                        avgRentPriceSqM = kpi.avgRentPriceSqM ?: 10.0,
-                        saleTrendYoY = kpi.saleTrendYoY ?: 2.0,
-                        rentTrendYoY = kpi.rentTrendYoY ?: 3.0,
+                        marketSaturation = saturation,
+                        daysOnMarket = dom,
+                        absorptionRatePercent = absorption,
+                        avgSalePriceSqM = salePrice,
+                        avgRentPriceSqM = rentPrice,
+                        saleTrendYoY = saleTrend,
+                        rentTrendYoY = rentTrend,
                         supplyDemandRatioIndex = currentSdr,
                         tensionLabel = getTensionLabel(currentSdr)
                     )
@@ -506,19 +531,25 @@ object SupplyDemandMonitoringEngine {
             for (i in 0 until jsonArray.length()) {
                 val obj = jsonArray.getJSONObject(i)
                 val loc = obj.getString("location")
-                result[loc.lowercase()] = SupplyDemandSnapshot(
-                    location = loc,
-                    timestamp = obj.optLong("timestamp", System.currentTimeMillis()),
-                    marketSaturation = obj.optInt("marketSaturation", 50),
-                    daysOnMarket = obj.optInt("daysOnMarket", 90),
-                    absorptionRatePercent = obj.optDouble("absorptionRatePercent", 60.0),
-                    avgSalePriceSqM = obj.optDouble("avgSalePriceSqM", 2000.0),
-                    avgRentPriceSqM = obj.optDouble("avgRentPriceSqM", 10.0),
-                    saleTrendYoY = obj.optDouble("saleTrendYoY", 2.0),
-                    rentTrendYoY = obj.optDouble("rentTrendYoY", 3.0),
-                    supplyDemandRatioIndex = obj.optDouble("supplyDemandRatioIndex", 50.0),
-                    tensionLabel = obj.optString("tensionLabel", "Normale")
-                )
+                
+                if (obj.has("marketSaturation") && obj.has("daysOnMarket") && 
+                    obj.has("absorptionRatePercent") && obj.has("avgSalePriceSqM") && 
+                    obj.has("avgRentPriceSqM") && obj.has("saleTrendYoY") && obj.has("rentTrendYoY")) {
+                    
+                    result[loc.lowercase()] = SupplyDemandSnapshot(
+                        location = loc,
+                        timestamp = obj.optLong("timestamp", System.currentTimeMillis()),
+                        marketSaturation = obj.getInt("marketSaturation"),
+                        daysOnMarket = obj.getInt("daysOnMarket"),
+                        absorptionRatePercent = obj.getDouble("absorptionRatePercent"),
+                        avgSalePriceSqM = obj.getDouble("avgSalePriceSqM"),
+                        avgRentPriceSqM = obj.getDouble("avgRentPriceSqM"),
+                        saleTrendYoY = obj.getDouble("saleTrendYoY"),
+                        rentTrendYoY = obj.getDouble("rentTrendYoY"),
+                        supplyDemandRatioIndex = obj.optDouble("supplyDemandRatioIndex", 50.0),
+                        tensionLabel = obj.optString("tensionLabel", "Normale")
+                    )
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error loading snapshots", e)

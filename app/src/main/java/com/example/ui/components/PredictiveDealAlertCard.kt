@@ -437,17 +437,26 @@ fun PredictiveDealAlertCard(
                                 color = CyanAccent
                             )
                         }
-                        Text(
-                            text = euroFormat.format(evaluation.predicted12mMarketValue),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = TextPrimaryDark
-                        )
-                        Text(
-                            text = "Yield: ${String.format(Locale.ITALY, "%.1f%%", evaluation.predicted12mYield)}",
-                            fontSize = 11.sp,
-                            color = TextSecondaryDark
-                        )
+                        if (evaluation.predicted12mMarketValue != null) {
+                            Text(
+                                text = euroFormat.format(evaluation.predicted12mMarketValue),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextPrimaryDark
+                            )
+                            Text(
+                                text = "Yield: ${String.format(Locale.ITALY, "%.1f%%", evaluation.predicted12mYield ?: 0.0)}",
+                                fontSize = 11.sp,
+                                color = TextSecondaryDark
+                            )
+                        } else {
+                            Text(
+                                text = "Proiezione non disponibile: trend di mercato non verificati",
+                                fontSize = 10.sp,
+                                color = AmberGold,
+                                lineHeight = 13.sp
+                            )
+                        }
                     }
                 }
 
@@ -479,18 +488,27 @@ fun PredictiveDealAlertCard(
                                 color = PurpleIndigo
                             )
                         }
-                        Text(
-                            text = euroFormat.format(evaluation.predicted24mMarketValue),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = TextPrimaryDark
-                        )
-                        val equitySign = if (evaluation.predicted12mEquityGain >= 0) "+" else ""
-                        Text(
-                            text = "Equity: $equitySign${euroFormat.format(evaluation.predicted12mEquityGain)}",
-                            fontSize = 11.sp,
-                            color = if (evaluation.predicted12mEquityGain >= 0) EmeraldGreen else TextSecondaryDark
-                        )
+                        if (evaluation.predicted24mMarketValue != null) {
+                            Text(
+                                text = euroFormat.format(evaluation.predicted24mMarketValue),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextPrimaryDark
+                            )
+                            val equitySign = if ((evaluation.predicted12mEquityGain ?: 0.0) >= 0) "+" else ""
+                            Text(
+                                text = "Equity: $equitySign${euroFormat.format(evaluation.predicted12mEquityGain ?: 0.0)}",
+                                fontSize = 11.sp,
+                                color = if ((evaluation.predicted12mEquityGain ?: 0.0) >= 0) EmeraldGreen else TextSecondaryDark
+                            )
+                        } else {
+                            Text(
+                                text = "Proiezione non disponibile: trend di mercato non verificati",
+                                fontSize = 10.sp,
+                                color = AmberGold,
+                                lineHeight = 13.sp
+                            )
+                        }
                     }
                 }
             }

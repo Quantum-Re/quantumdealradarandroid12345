@@ -1066,25 +1066,24 @@ fun PropertyDetailScreen(
                             }
 
                             // 5. Open in Google Maps
+                            val hasCoordinates = property.latitude != null && property.longitude != null
                             val mapsButtonLabel = when {
-                                property.latitude == 0.0 && property.longitude == 0.0 ->
-                                    "Cerca Indirizzo su Mappe (Coordinate non disponibili)"
+                                !hasCoordinates -> "Posizione non disponibile"
                                 property.evidenceRef?.contains("approssimata") == true ->
                                     "Apri su Mappe (Posizione approssimata al comune)"
                                 else -> "Apri Posizione su Google Maps"
                             }
                             OutlinedButton(
+                                enabled = hasCoordinates,
                                 onClick = {
-                                    try {
-                                        val query = if (property.latitude != 0.0 && property.longitude != 0.0) {
-                                            "geo:${property.latitude},${property.longitude}?q=${property.latitude},${property.longitude}(${Uri.encode(property.title)})"
-                                        } else {
-                                            "geo:0,0?q=${Uri.encode(property.address)}"
+                                    if (hasCoordinates) {
+                                        try {
+                                            val query = "geo:${property.latitude},${property.longitude}?q=${property.latitude},${property.longitude}(${Uri.encode(property.title)})"
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(query))
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Impossibile aprire l'app Mappe", Toast.LENGTH_SHORT).show()
                                         }
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(query))
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "Impossibile aprire l'app Mappe", Toast.LENGTH_SHORT).show()
                                     }
                                 },
                                 modifier = Modifier

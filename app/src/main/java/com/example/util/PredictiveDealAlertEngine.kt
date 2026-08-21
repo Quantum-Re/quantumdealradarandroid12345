@@ -54,10 +54,10 @@ data class PredictiveDealEvaluation(
     val targetPriceForTop10Percentile: Double? = null, // Maximum price to enter 90th percentile
     val targetPricePerSqmForTop10: Double? = null,
     val priceBufferVsTop10: Double? = null, // Positive if already in top 10% (margin of safety)
-    val predicted12mMarketValue: Double,
-    val predicted24mMarketValue: Double,
-    val predicted12mEquityGain: Double,
-    val predicted12mYield: Double,
+    val predicted12mMarketValue: Double? = null,
+    val predicted24mMarketValue: Double? = null,
+    val predicted12mEquityGain: Double? = null,
+    val predicted12mYield: Double? = null,
     val headline: String,
     val actionableSummary: String
 )
@@ -161,27 +161,45 @@ object PredictiveDealAlertEngine {
         val surface = max(1, property.surfaceSqm)
         val price = max(1000.0, property.price)
         val pricePerSqm = price / surface
-        val marketPricePerSqm = (provinceStats.currentAvgSalePriceSqM ?: 2000.0).coerceAtLeast(800.0)
+        val marketPricePerSqm = provinceStats.currentAvgSalePriceSqM ?: 0.0
 
         // 1. Valuation Discount % vs Scraped Provincial Baseline
-        val valuationDiscountPercent = ((marketPricePerSqm - pricePerSqm) / marketPricePerSqm) * 100.0
+        val valuationDiscountPercent = if (marketPricePerSqm > 0) {
+            ((marketPricePerSqm - pricePerSqm) / marketPricePerSqm) * 100.0
+        } else 0.0
 
         // 2. Implied Gross Rental Yield based on Scraped Provincial Rent / m²
-        val rentPerSqm = provinceStats.currentAvgRentPriceSqM ?: 12.0
-        val annualRentGross = rentPerSqm * surface * 12.0
-        val propertyImpliedGrossYield = (annualRentGross / price) * 100.0
+        val rentPerSqm = provinceStats.currentAvgRentPriceSqM
+        val annualRentGross = rentPerSqm?.let { it * surface * 12.0 }
+        val propertyImpliedGrossYield = if (price > 0 && annualRentGross != null) {
+            (annualRentGross / price) * 100.0
+        } else 0.0
 
         // 7. Predictive 12M & 24M Forecast based on provincial trends
-        val saleTrend = provinceStats.saleTrendYoY ?: 2.0
-        val rentTrend = provinceStats.rentTrendYoY ?: 3.0
-        val annualGrowthFactor = 1.0 + (saleTrend / 100.0)
-        val rentGrowthFactor = 1.0 + (rentTrend / 100.0)
+        val saleTrend = provinceStats.saleTrendYoY
+        val rentTrend = provinceStats.rentTrendYoY
 
-        val predicted12mMarketValue = (surface * marketPricePerSqm) * annualGrowthFactor
-        val predicted24mMarketValue = (surface * marketPricePerSqm) * annualGrowthFactor.pow(2)
+        val hasTrends = saleTrend != null && rentTrend != null
+
+        val predicted12mMarketValue = if (hasTrends) {
+            val growthFactor = 1.0 + (saleTrend / 100.0)
+            (surface * marketPricePerSqm) * growthFactor
+        } else null
+
+        val predicted24mMarketValue = if (hasTrends) {
+            val growthFactor = 1.0 + (saleTrend / 100.0)
+            (surface * marketPricePerSqm) * growthFactor.pow(2)
+        } else null
+
         val totalCost = price + property.estimatedRenovationCost
-        val predicted12mEquityGain = predicted12mMarketValue - totalCost
-        val predicted12mYield = ((annualRentGross * rentGrowthFactor) / price) * 100.0
+        val predicted12mEquityGain = if (predicted12mMarketValue != null) {
+            predicted12mMarketValue - totalCost
+        } else null
+
+        val predicted12mYield = if (hasTrends && annualRentGross != null) {
+            val rentGrowthFactor = 1.0 + (rentTrend / 100.0)
+            ((annualRentGross * rentGrowthFactor) / price) * 100.0
+        } else null
 
         // Check if verified historical dataset is available for percentile evaluation
         val meanYield = provinceStats.meanHistoricalYield
@@ -236,9 +254,9 @@ object PredictiveDealAlertEngine {
         val yieldSpreadVsP90 = propertyImpliedGrossYield - p90Yield
 
         // 6. Calculate the Target Price ceiling to reach P90 (90th percentile)
-        val targetPriceForP90Yield = (annualRentGross / (p90Yield / 100.0))
+        val targetPriceForP90Yield = if (annualRentGross != null) (annualRentGross / (p90Yield / 100.0)) else null
         val targetPriceForDiscount = (marketPricePerSqm * 0.85) * surface
-        val targetPriceForTop10 = min(targetPriceForP90Yield, targetPriceForDiscount)
+        val targetPriceForTop10 = if (targetPriceForP90Yield != null) min(targetPriceForP90Yield, targetPriceForDiscount) else targetPriceForDiscount
         val targetPricePerSqmForTop10 = targetPriceForTop10 / surface
 
         val priceBufferVsTop10 = targetPriceForTop10 - price

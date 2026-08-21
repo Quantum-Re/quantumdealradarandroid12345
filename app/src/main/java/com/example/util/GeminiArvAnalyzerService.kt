@@ -62,7 +62,7 @@ object GeminiArvAnalyzerService {
             - Current Estimated As-Is Value: €${property.estimatedValue.toInt()}
             - Distress Level: "${property.distressLevel}" (High, Medium, Low, Foreclosure, Auction, REO)
             - Current Status: "${property.status}"
-            - Coordinates: Latitude ${property.latitude}, Longitude ${property.longitude}
+            ${if (property.latitude != null && property.longitude != null) "- Coordinates: Latitude ${property.latitude}, Longitude ${property.longitude}" else "- Position: Geographic coordinates not available for this property"}
             - Notes / Observations: "${property.notes.ifBlank { "No special notes" }}"
             
             TASK:

@@ -1388,8 +1388,7 @@ fun MicroZonesDistributionCard(
                 )
             }
 
-            val fallbackBase = baseCityPrice ?: 2000.0
-            val maxZonePrice = microZones.maxOfOrNull { it.second } ?: (fallbackBase * 1.5)
+            val maxZonePrice = microZones.maxOfOrNull { it.second } ?: (baseCityPrice?.times(1.5) ?: 1.0)
 
             microZones.forEach { (zone, price) ->
                 val ratio = (price / maxZonePrice).toFloat().coerceIn(0.1f, 1f)
@@ -1675,8 +1674,9 @@ fun ProvinceTop10DealsPredictiveCard(
 
     // Benchmark sample deals for this province to demonstrate predictive scoring
     val sampleDeals = remember(kpi.locationName, kpi.avgSalePriceSqM, kpi.avgRentPriceSqM) {
-        val baseP = kpi.avgSalePriceSqM ?: 2000.0
-        listOf(
+        val baseP = kpi.avgSalePriceSqM
+        if (baseP == null) emptyList()
+        else listOf(
             com.example.data.Property(
                 id = 901L,
                 title = "Trilocale Ristrutturato con Box",
@@ -1721,12 +1721,17 @@ fun ProvinceTop10DealsPredictiveCard(
             .fillMaxWidth()
             .testTag("province_top10_predictive_card")
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        if (kpi.avgSalePriceSqM == null) {
+            Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                Text("Analisi predittiva non disponibile: dati di mercato N/D", color = AmberGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1918,4 +1923,5 @@ fun ProvinceTop10DealsPredictiveCard(
             }
         }
     }
+}
 }
