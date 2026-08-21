@@ -955,14 +955,16 @@ fun InteractiveRoiCalculatorCard(
                     ) {
                         Button(
                             onClick = {
-                                val safeSqm = if (surfaceSqm > 0) surfaceSqm.toDouble() else 80.0
-                                val rentM2 = kpi.avgRentPriceSqM ?: 0.0
-                                val calculatedRent = (safeSqm * rentM2).toInt()
-                                val estimatedCapex = (safeSqm * 380.0).toInt()
-                                estimatedRentStr = calculatedRent.toString()
-                                renovationCostStr = estimatedCapex.toString()
+                                val rentM2 = kpi.avgRentPriceSqM
+                                if (rentM2 != null && surfaceSqm > 0) {
+                                    val safeSqm = surfaceSqm.toDouble()
+                                    val calculatedRent = (safeSqm * rentM2).toInt()
+                                    val estimatedCapex = (safeSqm * 380.0).toInt()
+                                    estimatedRentStr = calculatedRent.toString()
+                                    renovationCostStr = estimatedCapex.toString()
+                                }
                             },
-                            enabled = kpi.avgRentPriceSqM != null,
+                            enabled = kpi.avgRentPriceSqM != null && surfaceSqm > 0,
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = EmeraldGreen, contentColor = Color.Black),

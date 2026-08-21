@@ -41,7 +41,7 @@ class MarketInsightsTest {
         assertTrue("Baseline report should have headline items", report.headlineItems.isNotEmpty())
         assertTrue("Baseline report should have macro indicators", report.macroIndicators.isNotEmpty())
         assertTrue("Baseline report should have grounding sources", report.groundingSources.isNotEmpty())
-        assertTrue("Baseline report should marked as grounded/curated", report.isGroundedWithGoogleSearch)
+        assertFalse("Baseline report should NOT be marked as live grounded", report.isGroundedWithGoogleSearch)
 
         // Verify headline properties
         for (item in report.headlineItems) {

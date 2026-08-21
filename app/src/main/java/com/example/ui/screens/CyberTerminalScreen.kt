@@ -441,7 +441,7 @@ fun CyberTerminalScreen(
                                             propertyType = activeDeal.propertyType,
                                             distressStatus = "First-Principles Validated",
                                             strategyTags = "Cyber / First-Principles",
-                                            notes = "Underwritten via Cyber Terminal (Material Basis: €${physicalCostTotal.toInt()}, Clean Energy: ${annualSolarKwh} kWh/yr, Anti-Fragility: ${clampedStressScore.toInt()}/100)"
+                                            notes = "Underwritten via Cyber Terminal (Atomic Cost: UNAVAILABLE, Clean Energy: UNVERIFIED, Anti-Fragility: ${clampedStressScore.toInt()}/100)"
                                         )
                                         onAcquireDeal(newProperty)
                                         auditSuccessMessage = "✓ Immobile esportato con successo in 'I Miei Immobili'!"
@@ -741,7 +741,7 @@ private fun FirstPrinciplesDeconstructionCard(
                         color = Color.LightGray
                     )
                     Text(
-                        text = "€${rawMaterialCostSqm.toInt()}/m²  [€${(rawMaterialCostSqm * surfaceSqm).toInt()}]",
+                        text = "N/D (Richiede Perizia)",
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
@@ -759,7 +759,7 @@ private fun FirstPrinciplesDeconstructionCard(
                         color = Color.LightGray
                     )
                     Text(
-                        text = "€${laborAssemblyCostSqm.toInt()}/m²  [€${(laborAssemblyCostSqm * surfaceSqm).toInt()}]",
+                        text = "N/D (Richiede Perizia)",
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,

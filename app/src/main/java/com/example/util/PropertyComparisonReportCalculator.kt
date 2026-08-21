@@ -12,22 +12,22 @@ import kotlin.math.roundToInt
 data class PropertyComparisonReportData(
     val propertyA: Property,
     val propertyB: Property,
-    val surfaceSqmA: Int,
-    val surfaceSqmB: Int,
+    val surfaceSqmA: Int?,
+    val surfaceSqmB: Int?,
     val purchasePriceA: Double,
     val purchasePriceB: Double,
-    val pricePerSqmA: Double,
-    val pricePerSqmB: Double,
+    val pricePerSqmA: Double?,
+    val pricePerSqmB: Double?,
     val renovationCostA: Double,
     val renovationCostB: Double,
-    val renoPerSqmA: Double,
-    val renoPerSqmB: Double,
+    val renoPerSqmA: Double?,
+    val renoPerSqmB: Double?,
     val renoToPurchaseRatioA: Double,
     val renoToPurchaseRatioB: Double,
     val totalInvestedBasisA: Double,
     val totalInvestedBasisB: Double,
-    val totalInvestedPerSqmA: Double,
-    val totalInvestedPerSqmB: Double,
+    val totalInvestedPerSqmA: Double?,
+    val totalInvestedPerSqmB: Double?,
     val effectiveExitValueA: Double,
     val effectiveExitValueB: Double,
     val projectedGrossProfitA: Double,
@@ -45,7 +45,7 @@ data class PropertyComparisonReportData(
 
     // Deltas (A minus B)
     val deltaPurchasePrice: Double,
-    val deltaPricePerSqm: Double,
+    val deltaPricePerSqm: Double?,
     val deltaRenovationCost: Double,
     val deltaTotalInvested: Double,
     val deltaExitValue: Double,
@@ -76,20 +76,21 @@ object PropertyComparisonReportCalculator {
         evalA: PropertyOpportunityEvaluation? = null,
         evalB: PropertyOpportunityEvaluation? = null
     ): PropertyComparisonReportData {
-        val sqmA = if (propertyA.surfaceSqm > 0) propertyA.surfaceSqm else 80
-        val sqmB = if (propertyB.surfaceSqm > 0) propertyB.surfaceSqm else 80
+        // Nessuna superficie di ripiego: se mancante, tutte le grandezze "per m²" restano non disponibili.
+        val sqmA = propertyA.surfaceSqm.takeIf { it > 0 }
+        val sqmB = propertyB.surfaceSqm.takeIf { it > 0 }
 
         val priceA = propertyA.price
         val priceB = propertyB.price
 
-        val priceSqmA = if (sqmA > 0) priceA / sqmA else 0.0
-        val priceSqmB = if (sqmB > 0) priceB / sqmB else 0.0
+        val priceSqmA = sqmA?.let { priceA / it }
+        val priceSqmB = sqmB?.let { priceB / it }
 
         val renoA = if (propertyA.actualRenovationCost > 0) propertyA.actualRenovationCost else propertyA.estimatedRenovationCost
         val renoB = if (propertyB.actualRenovationCost > 0) propertyB.actualRenovationCost else propertyB.estimatedRenovationCost
 
-        val renoSqmA = if (sqmA > 0) renoA / sqmA else 0.0
-        val renoSqmB = if (sqmB > 0) renoB / sqmB else 0.0
+        val renoSqmA = sqmA?.let { renoA / it }
+        val renoSqmB = sqmB?.let { renoB / it }
 
         val renoRatioA = if (priceA > 0) (renoA / priceA) * 100.0 else 0.0
         val renoRatioB = if (priceB > 0) (renoB / priceB) * 100.0 else 0.0
@@ -97,8 +98,8 @@ object PropertyComparisonReportCalculator {
         val totalBasisA = priceA + renoA
         val totalBasisB = priceB + renoB
 
-        val totalBasisSqmA = if (sqmA > 0) totalBasisA / sqmA else 0.0
-        val totalBasisSqmB = if (sqmB > 0) totalBasisB / sqmB else 0.0
+        val totalBasisSqmA = sqmA?.let { totalBasisA / it }
+        val totalBasisSqmB = sqmB?.let { totalBasisB / it }
 
         val exitValA = evalA?.scrapedMarketValue ?: propertyA.effectiveExitValue
         val exitValB = evalB?.scrapedMarketValue ?: propertyB.effectiveExitValue
@@ -136,7 +137,7 @@ object PropertyComparisonReportCalculator {
 
         // Deltas
         val deltaPrice = priceA - priceB
-        val deltaPriceSqm = priceSqmA - priceSqmB
+        val deltaPriceSqm = if (priceSqmA != null && priceSqmB != null) priceSqmA - priceSqmB else null
         val deltaReno = renoA - renoB
         val deltaInvested = totalBasisA - totalBasisB
         val deltaExit = exitValA - exitValB
@@ -154,7 +155,7 @@ object PropertyComparisonReportCalculator {
             }
         }
 
-        val winnerEntryPricePerSqm = determineWinner(deltaPriceSqm, higherIsBetter = false)
+        val winnerEntryPricePerSqm = deltaPriceSqm?.let { determineWinner(it, higherIsBetter = false) } ?: "N/D"
         val winnerLowestTotalCapital = determineWinner(deltaInvested, higherIsBetter = false)
         val winnerMaxProfit = determineWinner(deltaProfit, higherIsBetter = true)
         val winnerMaxRoi = determineWinner(deltaRoi, higherIsBetter = true)
@@ -168,7 +169,9 @@ object PropertyComparisonReportCalculator {
         val takeaways = mutableListOf<String>()
 
         // Takeaway 1: Acquisition & Entry Basis
-        if (winnerEntryPricePerSqm == "A") {
+        if (priceSqmA == null || priceSqmB == null) {
+            takeaways.add("Vantaggio di Ingresso: prezzo al m² non disponibile, superficie non verificata per almeno uno dei due immobili.")
+        } else if (winnerEntryPricePerSqm == "A") {
             val savingSqm = priceSqmB - priceSqmA
             takeaways.add("Vantaggio di Ingresso: $titleA offre un costo/m² inferiore di ${savingSqm.roundToInt()} €/m² rispetto a $titleB.")
         } else if (winnerEntryPricePerSqm == "B") {

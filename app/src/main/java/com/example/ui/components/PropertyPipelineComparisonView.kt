@@ -64,8 +64,8 @@ data class PropertyProjectedKpi(
     val exitValue: Double,
     val grossProfit: Double,
     val roiPercent: Double,
-    val pricePerSqm: Double,
-    val exitPricePerSqm: Double,
+    val pricePerSqm: Double?,
+    val exitPricePerSqm: Double?,
     val rentalIncomeMonthly: Double,
     val grossRentalYield: Double,
     val paybackMonths: Double,
@@ -124,9 +124,9 @@ fun PropertyPipelineComparisonView(
             val adjustedExit = baseExit * currentScenario.saleMultiplier
             val profit = adjustedExit - totalCost
             val roi = if (totalCost > 0) (profit / totalCost) * 100.0 else 0.0
-            val sqm = if (prop.surfaceSqm > 0) prop.surfaceSqm else 90
-            val pricePerSqm = if (sqm > 0) prop.price / sqm else 0.0
-            val exitPerSqm = if (sqm > 0) adjustedExit / sqm else 0.0
+            val sqm = prop.surfaceSqm.takeIf { it > 0 }
+            val pricePerSqm = sqm?.let { prop.price / it }
+            val exitPerSqm = sqm?.let { adjustedExit / it }
             val rentMonthly = prop.projectedRentalIncome
             val rentYield = if (totalCost > 0 && rentMonthly > 0) (rentMonthly * 12.0 / totalCost) * 100.0 else 0.0
             val payback = if (rentMonthly > 0) (totalCost / rentMonthly) else 0.0
@@ -154,7 +154,11 @@ fun PropertyPipelineComparisonView(
     val maxRoiProp = remember(projectedKpis) { projectedKpis.maxByOrNull { it.roiPercent } }
     val maxProfitProp = remember(projectedKpis) { projectedKpis.maxByOrNull { it.grossProfit } }
     val minCostProp = remember(projectedKpis) { projectedKpis.minByOrNull { it.totalCostBasis } }
-    val minPriceSqmProp = remember(projectedKpis) { projectedKpis.filter { it.pricePerSqm > 0 }.minByOrNull { it.pricePerSqm } }
+    val minPriceSqmProp = remember(projectedKpis) {
+        projectedKpis.mapNotNull { kpi -> kpi.pricePerSqm?.let { kpi to it } }
+            .minByOrNull { it.second }
+            ?.first
+    }
     val maxYieldProp = remember(projectedKpis) { projectedKpis.filter { it.grossRentalYield > 0 }.maxByOrNull { it.grossRentalYield } }
 
     Column(
@@ -959,7 +963,7 @@ private fun ComparisonMatrixTable(
                             isWinner = false
                         )
                         ComparisonValueCell(
-                            valueText = if (item.pricePerSqm > 0) "${euroFormat.format(item.pricePerSqm)}/m²" else "N/D",
+                            valueText = if (item.pricePerSqm != null) "${euroFormat.format(item.pricePerSqm)}/m²" else "N/D",
                             isWinner = isMinPriceSqm,
                             winnerText = "Best €/m²"
                         )
@@ -975,7 +979,7 @@ private fun ComparisonMatrixTable(
                         ComparisonSectionHeaderSpacer()
                         ComparisonValueCell(euroFormat.format(item.exitValue), isWinner = false)
                         ComparisonValueCell(
-                            if (item.exitPricePerSqm > 0) "${euroFormat.format(item.exitPricePerSqm)}/m²" else "N/D",
+                            if (item.exitPricePerSqm != null) "${euroFormat.format(item.exitPricePerSqm)}/m²" else "N/D",
                             isWinner = false
                         )
                         ComparisonValueCell(

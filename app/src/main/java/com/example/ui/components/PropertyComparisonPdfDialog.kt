@@ -378,8 +378,8 @@ fun PropertyComparisonPdfDialog(
                                 // Quick Metric Comparison Table
                                 PreviewMetricRow(
                                     label = "Prezzo d'Ingresso",
-                                    valA = "${euroFormat.format(comparisonData.purchasePriceA)} (${comparisonData.pricePerSqmA.toInt()}€/m²)",
-                                    valB = "${euroFormat.format(comparisonData.purchasePriceB)} (${comparisonData.pricePerSqmB.toInt()}€/m²)",
+                                    valA = "${euroFormat.format(comparisonData.purchasePriceA)} (${comparisonData.pricePerSqmA?.toInt()?.let { "$it€/m²" } ?: "N/D"})",
+                                    valB = "${euroFormat.format(comparisonData.purchasePriceB)} (${comparisonData.pricePerSqmB?.toInt()?.let { "$it€/m²" } ?: "N/D"})",
                                     winner = comparisonData.winnerEntryPricePerSqm
                                 )
                                 PreviewMetricRow(

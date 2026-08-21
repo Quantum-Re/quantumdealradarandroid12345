@@ -1121,6 +1121,8 @@ object PropertyPdfGenerator {
     ): File? {
         return try {
             val data = PropertyComparisonReportCalculator.calculate(propertyA, propertyB, evalA, evalB)
+            fun fmtSqm(v: Int?): String = v?.let { "$it m²" } ?: "N/D"
+            fun fmtPerSqm(v: Double?): String = v?.let { "${it.roundToInt()} €/m²" } ?: "N/D"
 
             val pdfDocument = PdfDocument()
             val pageWidth = 595
@@ -1222,7 +1224,7 @@ object PropertyPdfGenerator {
             paint.isFakeBoldText = false
             val addrA = if (propertyA.address.length > 34) propertyA.address.take(31) + "..." else propertyA.address
             canvas.drawText(addrA, 35f, 132f, paint)
-            canvas.drawText("${propertyA.propertyType} • ${data.surfaceSqmA} m² • ${propertyA.strategyTags.ifBlank { "Standard" }}", 35f, 146f, paint)
+            canvas.drawText("${propertyA.propertyType} • ${fmtSqm(data.surfaceSqmA)} • ${propertyA.strategyTags.ifBlank { "Standard" }}", 35f, 146f, paint)
 
             // Card B (Right)
             val cardRectB = RectF(305f, 92f, 305f + cardWidth, 92f + cardHeight)
@@ -1253,7 +1255,7 @@ object PropertyPdfGenerator {
             paint.isFakeBoldText = false
             val addrB = if (propertyB.address.length > 34) propertyB.address.take(31) + "..." else propertyB.address
             canvas.drawText(addrB, 315f, 132f, paint)
-            canvas.drawText("${propertyB.propertyType} • ${data.surfaceSqmB} m² • ${propertyB.strategyTags.ifBlank { "Standard" }}", 315f, 146f, paint)
+            canvas.drawText("${propertyB.propertyType} • ${fmtSqm(data.surfaceSqmB)} • ${propertyB.strategyTags.ifBlank { "Standard" }}", 315f, 146f, paint)
 
             // 3. Four Key Comparison Metric Bento Boxes (Y: 166f to 286f)
             fun drawComparisonMetricPill(
@@ -1313,8 +1315,8 @@ object PropertyPdfGenerator {
                 title = "PREZZO D'ACQUISTO & COSTO/M²",
                 valA = currencyFormat.format(data.purchasePriceA),
                 valB = currencyFormat.format(data.purchasePriceB),
-                subA = "${data.pricePerSqmA.roundToInt()} €/m² ${if (data.winnerEntryPricePerSqm == "A") "★ Vantaggioso" else ""}",
-                subB = "${data.pricePerSqmB.roundToInt()} €/m² ${if (data.winnerEntryPricePerSqm == "B") "★ Vantaggioso" else ""}",
+                subA = "${fmtPerSqm(data.pricePerSqmA)} ${if (data.winnerEntryPricePerSqm == "A") "★ Vantaggioso" else ""}",
+                subB = "${fmtPerSqm(data.pricePerSqmB)} ${if (data.winnerEntryPricePerSqm == "B") "★ Vantaggioso" else ""}",
                 winner = data.winnerEntryPricePerSqm,
                 accentColor = cyanAccent
             )
@@ -1337,8 +1339,8 @@ object PropertyPdfGenerator {
                 title = "BASE DI COSTO COMPLESSIVA (INVESTITO)",
                 valA = currencyFormat.format(data.totalInvestedBasisA),
                 valB = currencyFormat.format(data.totalInvestedBasisB),
-                subA = "${data.totalInvestedPerSqmA.roundToInt()} €/m² totale",
-                subB = "${data.totalInvestedPerSqmB.roundToInt()} €/m² totale",
+                subA = "${fmtPerSqm(data.totalInvestedPerSqmA)} totale",
+                subB = "${fmtPerSqm(data.totalInvestedPerSqmB)} totale",
                 winner = data.winnerLowestTotalCapital,
                 accentColor = purpleAccent
             )
@@ -1380,9 +1382,26 @@ object PropertyPdfGenerator {
             tableY += 18f
 
             val comparisonRows = listOf(
-                arrayOf("Superficie Commerciale", "${data.surfaceSqmA} m²", "${data.surfaceSqmB} m²", "${data.surfaceSqmA - data.surfaceSqmB} m²"),
+                arrayOf(
+                    "Superficie Commerciale",
+                    fmtSqm(data.surfaceSqmA),
+                    fmtSqm(data.surfaceSqmB),
+                    if (data.surfaceSqmA != null && data.surfaceSqmB != null) "${data.surfaceSqmA - data.surfaceSqmB} m²" else "N/D"
+                ),
                 arrayOf("Prezzo Richiesto / Acquisto", currencyFormat.format(data.purchasePriceA), currencyFormat.format(data.purchasePriceB), "${if (data.deltaPurchasePrice > 0) "+" else ""}${currencyFormat.format(data.deltaPurchasePrice)}"),
-                arrayOf("Prezzo d'Ingresso al m²", "${data.pricePerSqmA.roundToInt()} €/m²", "${data.pricePerSqmB.roundToInt()} €/m²", "${if (data.winnerEntryPricePerSqm == "A") "A vince (-${(data.pricePerSqmB - data.pricePerSqmA).roundToInt()}€/m²)" else if (data.winnerEntryPricePerSqm == "B") "B vince (-${(data.pricePerSqmA - data.pricePerSqmB).roundToInt()}€/m²)" else "Pari"}"),
+                arrayOf(
+                    "Prezzo d'Ingresso al m²",
+                    fmtPerSqm(data.pricePerSqmA),
+                    fmtPerSqm(data.pricePerSqmB),
+                    when {
+                        data.winnerEntryPricePerSqm == "A" && data.pricePerSqmA != null && data.pricePerSqmB != null ->
+                            "A vince (-${(data.pricePerSqmB - data.pricePerSqmA).roundToInt()}€/m²)"
+                        data.winnerEntryPricePerSqm == "B" && data.pricePerSqmA != null && data.pricePerSqmB != null ->
+                            "B vince (-${(data.pricePerSqmA - data.pricePerSqmB).roundToInt()}€/m²)"
+                        data.winnerEntryPricePerSqm == "N/D" -> "N/D"
+                        else -> "Pari"
+                    }
+                ),
                 arrayOf("Costo Stimato Ristrutturazione", currencyFormat.format(data.renovationCostA), currencyFormat.format(data.renovationCostB), "${if (data.deltaRenovationCost > 0) "+" else ""}${currencyFormat.format(data.deltaRenovationCost)}"),
                 arrayOf("Incidenza Lavori / Acquisto", "${String.format(Locale.ITALY, "%.1f", data.renoToPurchaseRatioA)}%", "${String.format(Locale.ITALY, "%.1f", data.renoToPurchaseRatioB)}%", "${if (data.winnerLowerCapExRisk == "A") "A minor rischio" else if (data.winnerLowerCapExRisk == "B") "B minor rischio" else "Pari"}"),
                 arrayOf("Base di Costo Totale (Investito)", currencyFormat.format(data.totalInvestedBasisA), currencyFormat.format(data.totalInvestedBasisB), "${if (data.deltaTotalInvested > 0) "+" else ""}${currencyFormat.format(data.deltaTotalInvested)}"),

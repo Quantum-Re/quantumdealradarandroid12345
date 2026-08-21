@@ -56,30 +56,35 @@ fun SeniorAppraisalDialog(
         coveredSqMText, basePriceSqMText, terraceSqMText, cellarSqMText, gardenSqMText, sanatoriaCostText,
         selectedCondition, selectedFloor, hasElevator, selectedEnergyClass, selectedOccupancy, hasGarage, hasPanoramicView
     ) {
-        val coveredSqM = coveredSqMText.toDoubleOrNull() ?: 85.0
+        // Nessuna superficie coperta di ripiego: senza un valore valido la perizia non si calcola.
+        val coveredSqM = coveredSqMText.toDoubleOrNull()
         val basePriceSqM = basePriceSqMText.toDoubleOrNull() ?: 2200.0
         val terraceSqM = terraceSqMText.toDoubleOrNull() ?: 0.0
         val cellarSqM = cellarSqMText.toDoubleOrNull() ?: 0.0
         val gardenSqM = gardenSqMText.toDoubleOrNull() ?: 0.0
         val sanatoriaCost = sanatoriaCostText.toDoubleOrNull() ?: 0.0
 
-        val input = SeniorValuationEngine.ValuationInput(
-            mainCoveredSqM = coveredSqM,
-            balconyTerraceSqM = terraceSqM,
-            cellarAtticSqM = cellarSqM,
-            gardenSqM = gardenSqM,
-            baseZonePricePerSqM = basePriceSqM,
-            condition = selectedCondition,
-            floorLevel = selectedFloor,
-            hasElevator = hasElevator,
-            energyClass = selectedEnergyClass,
-            occupancyStatus = selectedOccupancy,
-            hasGarageOrParking = hasGarage,
-            hasPanoramicView = hasPanoramicView,
-            estimatedSanatoriaCost = sanatoriaCost
-        )
+        if (coveredSqM == null) {
+            null
+        } else {
+            val input = SeniorValuationEngine.ValuationInput(
+                mainCoveredSqM = coveredSqM,
+                balconyTerraceSqM = terraceSqM,
+                cellarAtticSqM = cellarSqM,
+                gardenSqM = gardenSqM,
+                baseZonePricePerSqM = basePriceSqM,
+                condition = selectedCondition,
+                floorLevel = selectedFloor,
+                hasElevator = hasElevator,
+                energyClass = selectedEnergyClass,
+                occupancyStatus = selectedOccupancy,
+                hasGarageOrParking = hasGarage,
+                hasPanoramicView = hasPanoramicView,
+                estimatedSanatoriaCost = sanatoriaCost
+            )
 
-        SeniorValuationEngine.calculateValuation(input)
+            SeniorValuationEngine.calculateValuation(input)
+        }
     }
 
     Dialog(
@@ -157,14 +162,23 @@ fun SeniorAppraisalDialog(
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
+                            val result = valuationResult
+                            if (result == null) {
+                                Text(
+                                    text = "N/D — superficie coperta non valida",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            } else {
                             Text(
-                                text = currencyFormat.format(valuationResult.totalEstimatedMarketValue),
+                                text = currencyFormat.format(result.totalEstimatedMarketValue),
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Forchetta Peritale: ${currencyFormat.format(valuationResult.minFairValue)} - ${currencyFormat.format(valuationResult.maxFairValue)}",
+                                text = "Forchetta Peritale: ${currencyFormat.format(result.minFairValue)} - ${currencyFormat.format(result.maxFairValue)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -182,7 +196,7 @@ fun SeniorAppraisalDialog(
                                         style = MaterialTheme.typography.labelSmall
                                     )
                                     Text(
-                                        text = "${valuationResult.commercialSqM} m²",
+                                        text = "${result.commercialSqM} m²",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -193,7 +207,7 @@ fun SeniorAppraisalDialog(
                                         style = MaterialTheme.typography.labelSmall
                                     )
                                     Text(
-                                        text = "€${valuationResult.adjustedPricePerSqM}/m²",
+                                        text = "€${result.adjustedPricePerSqM}/m²",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -204,12 +218,13 @@ fun SeniorAppraisalDialog(
                                         style = MaterialTheme.typography.labelSmall
                                     )
                                     Text(
-                                        text = "${if (valuationResult.totalCorrectionPercentage >= 0) "+" else ""}${valuationResult.totalCorrectionPercentage}%",
+                                        text = "${if (result.totalCorrectionPercentage >= 0) "+" else ""}${result.totalCorrectionPercentage}%",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = if (valuationResult.totalCorrectionPercentage >= 0) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
+                                        color = if (result.totalCorrectionPercentage >= 0) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
                                     )
                                 }
+                            }
                             }
                         }
                     }
@@ -488,7 +503,7 @@ fun SeniorAppraisalDialog(
                             .padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        valuationResult.breakdownFactors.forEach { (label, value) ->
+                        valuationResult?.breakdownFactors?.forEach { (label, value) ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -523,12 +538,16 @@ fun SeniorAppraisalDialog(
                     }
                     Button(
                         onClick = {
-                            onApplyValuation(
-                                valuationResult.totalEstimatedMarketValue,
-                                valuationResult.commercialSqM
-                            )
-                            onDismissRequest()
+                            val result = valuationResult
+                            if (result != null) {
+                                onApplyValuation(
+                                    result.totalEstimatedMarketValue,
+                                    result.commercialSqM
+                                )
+                                onDismissRequest()
+                            }
                         },
+                        enabled = valuationResult != null,
                         modifier = Modifier.weight(1.5f)
                     ) {
                         Icon(imageVector = Icons.Default.Check, contentDescription = null)

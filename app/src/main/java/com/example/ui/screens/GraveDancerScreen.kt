@@ -472,7 +472,7 @@ fun GraveDancerScreen(
                                             propertyType = activeDeal.propertyType,
                                             distressStatus = "Replacement Cost Arbitrage (${discountToReplacementPercent.toInt()}% Off)",
                                             strategyTags = "Grave Dancer / Contrarian",
-                                            notes = "Underwritten via Sam Zell Mode: Basis €${pricePerSqm.toInt()}/m² vs Replacement Cost €${replacementCostSqmBenchmark.toInt()}/m². Breakeven Occupancy: ${breakevenOccupancyRate.toInt()}%."
+                                            notes = "Underwritten via Sam Zell Mode (Unverified Estimate): Basis €${pricePerSqm.toInt()}/m² vs Benchmark €${replacementCostSqmBenchmark.toInt()}/m². Breakeven: N/D."
                                         )
                                         onAcquireDeal(newProperty)
                                         acquisitionSuccessMessage = "✓ Deal aggiunto al Portafoglio con Margin of Safety validato!"
@@ -668,7 +668,7 @@ private fun ReplacementCostArbitrageCard(
                         )
                     }
                     Text(
-                        text = "Vantaggio Insuperabile",
+                        text = "Analisi Preliminare",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFA5D6A7)
@@ -822,7 +822,7 @@ private fun DownsideFirstCard(
                 }
 
                 Text(
-                    text = "BREAKEVEN: ${breakevenOccupancyRate.toInt()}%",
+                    text = "BREAKEVEN: N/D",
                     fontSize = 11.sp,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
@@ -851,7 +851,7 @@ private fun DownsideFirstCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Anche con il ${100 - breakevenOccupancyRate.toInt()}% di sfitto, l'immobile si auto-finanzia.", fontSize = 10.sp, color = Color(0xFFA5D6A7), fontWeight = FontWeight.Bold)
+                Text(text = "Dato reale di sfitto non disponibile senza grounding storico.", fontSize = 10.sp, color = Color(0xFFA5D6A7), fontWeight = FontWeight.Bold)
             }
         }
     }

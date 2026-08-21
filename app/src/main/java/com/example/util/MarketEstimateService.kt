@@ -433,6 +433,8 @@ object MarketEstimateService {
         )
         val completeness = measurementFields.count { it != null }.toDouble() / measurementFields.size.toDouble()
 
+        val hasGrounding = citations.isNotEmpty() || textContent.contains("Fonte:", ignoreCase = true)
+        
         return ProvinceScrapedKpi(
             locationName = queryLocation.capitalizeWords(),
             province = provinceGuess,
@@ -451,7 +453,7 @@ object MarketEstimateService {
             sourceUrl = url,
             sourceCitations = citations.distinct().take(5),
             scrapedAt = System.currentTimeMillis(),
-            isLiveScraped = true,
+            isLiveScraped = hasGrounding,
             marketSummary = summary,
             historicalTrends = emptyList(),
             historicalDatasetVerified = false,
@@ -461,7 +463,7 @@ object MarketEstimateService {
             completeness = completeness,
             sourceReliability = null,
             valuationConfidence = null,
-            mitigationEngineStatus = "Live Gemini Search Grounding"
+            mitigationEngineStatus = if (hasGrounding) "Live Gemini Search Grounding" else "AI Inference (Ungrounded)"
         )
     }
 
@@ -632,10 +634,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("monza") -> ProvinceScrapedKpi(
                 locationName = "Monza",
@@ -658,10 +661,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("roma") -> ProvinceScrapedKpi(
                 locationName = "Roma",
@@ -684,10 +688,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("torino") -> ProvinceScrapedKpi(
                 locationName = "Torino",
@@ -710,10 +715,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("bologna") -> ProvinceScrapedKpi(
                 locationName = "Bologna",
@@ -736,10 +742,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("firenze") -> ProvinceScrapedKpi(
                 locationName = "Firenze",
@@ -762,10 +769,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("napoli") -> ProvinceScrapedKpi(
                 locationName = "Napoli",
@@ -788,10 +796,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("bergamo") -> ProvinceScrapedKpi(
                 locationName = "Bergamo",
@@ -814,10 +823,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("brescia") -> ProvinceScrapedKpi(
                 locationName = "Brescia",
@@ -840,10 +850,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("verona") -> ProvinceScrapedKpi(
                 locationName = "Verona",
@@ -866,10 +877,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("genova") -> ProvinceScrapedKpi(
                 locationName = "Genova",
@@ -892,10 +904,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("palermo") -> ProvinceScrapedKpi(
                 locationName = "Palermo",
@@ -918,10 +931,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             lower.contains("bari") -> ProvinceScrapedKpi(
                 locationName = "Bari",
@@ -944,10 +958,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
             else -> ProvinceScrapedKpi(
                 locationName = "Milano",
@@ -970,10 +985,11 @@ object MarketEstimateService {
                 historicalDatasetVerified = false,
                 historicalSampleSize = 0,
                 usedFallbackData = true,
+                isLiveScraped = false,
                 completeness = 1.0,
                 sourceReliability = null,
                 valuationConfidence = null,
-                mitigationEngineStatus = "Valori fittizi interni"
+                mitigationEngineStatus = "Valori interni di riferimento (Non verificati)"
             )
         }
     }

@@ -53,10 +53,9 @@ object GeminiAiHubService {
         val apiKey = getApiKey()
         if (apiKey.isEmpty()) {
             return@withContext Result.success(
-                "🔍 **[Google Search Grounding] Market & Legal Inquiry**: \"$query\"\n\n" +
-                "• **Auction Calendar Updates**: Verified municipal CTU real estate court postings in $location for active foreclosures.\n" +
-                "• **OMI Land Price Benchmark**: Average zone rate estimated at €2,850 - €3,400/m².\n" +
-                "• **Zoning & Urban Tax Policy**: Local superbonus & renovation tax credits are active until Q4 2026."
+                "🔍 **[Market & Legal Research]**: \"$query\"\n\n" +
+                "• **Status**: Grounded Google Search research unavailable (API Key missing).\n" +
+                "• **Action**: Verify local auction calendars and OMI benchmarks manually via official portals."
             )
         }
 
@@ -103,10 +102,9 @@ object GeminiAiHubService {
         val apiKey = getApiKey()
         if (apiKey.isEmpty()) {
             return@withContext Result.success(
-                "🗺️ **[Google Maps Grounding] Neighborhood Valuation Report**: \"$address\"\n\n" +
-                "• **Transit Access**: Metro & bus hubs located within 450 meters (~5 min walk).\n" +
-                "• **Commercial Amenities**: Supermarket, pharmacy, and primary school within 800m radius.\n" +
-                "• **Neighborhood Micro-Location**: Quiet secondary avenue with high resale liquidity and low traffic noise."
+                "🗺️ **[Location Analysis]**: \"$address\"\n\n" +
+                "• **Status**: Live Maps-grounded neighborhood inspection unavailable.\n" +
+                "• **Note**: Please consult Google Maps directly to verify transit access and local amenities."
             )
         }
 
@@ -150,12 +148,10 @@ object GeminiAiHubService {
     ): Result<String> = withContext(Dispatchers.IO) {
         val apiKey = getApiKey()
         if (apiKey.isEmpty()) {
-            val quickDiscount = ((property.estimatedValue - property.price) / property.estimatedValue * 100).toInt().coerceAtLeast(5)
             return@withContext Result.success(
-                "⚡ **[Low-Latency Flash-Lite Screener]**\n" +
-                "• **Instant Triage Grade**: A+ (High Yield Opportunity)\n" +
-                "• **Under Market Discount**: -$quickDiscount% Below As-Is Estimate\n" +
-                "• **Quick Action**: Target for immediate court dossier request & CTU file inspection."
+                "⚡ **[Quick Screener]**\n" +
+                "• **Status**: AI-driven triage unavailable (API Key missing).\n" +
+                "• **Manual Check Required**: Inspect court dossier and legal status independently."
             )
         }
 
@@ -202,10 +198,9 @@ object GeminiAiHubService {
 
         if (apiKey.isEmpty()) {
             return@withContext Result.success(
-                "📸 **[Gemini Pro Multimodal Photo Inspection]**\n\n" +
-                "• **Visual Inspection Findings**: Facade shows exterior plaster cracking and moisture staining near roofline.\n" +
-                "• **Estimated Repair Scope**: Exterior damp-proofing, facade thermal coating (€18,000 - €24,000).\n" +
-                "• **Risk Rating**: Moderate cosmetic & envelope repairs required prior to re-leasing."
+                "📸 **[Photo Inspection]**\n\n" +
+                "• **Status**: Multimodal visual analysis unavailable.\n" +
+                "• **Action**: Manual site visit recommended to assess physical condition and renovation needs."
             )
         }
 
@@ -251,12 +246,9 @@ object GeminiAiHubService {
         val apiKey = getApiKey()
         if (apiKey.isEmpty()) {
             return@withContext Result.success(
-                "🎥 **[Gemini Pro Video Walkthrough Inspection]**\n\n" +
-                "• **Room-by-Room Video Breakdown**:\n" +
-                "  - *Living Room*: Hardwood flooring refinishing required, electrical outlets outdated.\n" +
-                "  - *Kitchen*: Full gut renovation needed; plumbing stack replacement recommended.\n" +
-                "  - *Bathroom*: Tile mold remediation & ventilation upgrade required.\n" +
-                "• **Overall Video Damage Assessment**: Heavily neglected interior, estimated rehab total €38,000."
+                "🎥 **[Video Walkthrough Analysis]**\n\n" +
+                "• **Status**: Automated structural video assessment unavailable.\n" +
+                "• **Action**: Review footage manually to itemize renovation scope and potential defects."
             )
         }
 
@@ -297,14 +289,9 @@ object GeminiAiHubService {
         val apiKey = getApiKey()
         if (apiKey.isEmpty()) {
             return@withContext Result.success(
-                "🧠 **[High Thinking Mode - Multi-Scenario Reasoning]**\n\n" +
-                "• **Scenario A (Fix & Flip Exit)**:\n" +
-                "  - Acquisition: €${property.price.toInt()} | Rehab: €42,000 | Projected Exit ARV: €${(property.price * 1.45).toInt()}\n" +
-                "  - Net Return on Invested Capital: +28.4% after closing fees & capital gains tax.\n\n" +
-                "• **Scenario B (Long-Term Rental / BRRRR Strategy)**:\n" +
-                "  - Refinance LTV 75% post-rehab recovers 92% of initial capital.\n" +
-                "  - Projected Gross Monthly Rent: €1,450/mo (~8.2% Cap Rate).\n\n" +
-                "• **Auction Legal Due Diligence**: Check CTU appraisal for tenant occupancy rights and unpaid condominium HOA debts."
+                "🧠 **[Financial Analysis]**\n\n" +
+                "• **Status**: Deep reasoning multi-scenario analysis unavailable.\n" +
+                "• **Action**: Use 'Financial Engine' for manual scenario modelling."
             )
         }
 
@@ -350,8 +337,9 @@ object GeminiAiHubService {
         val apiKey = getApiKey()
         if (apiKey.isEmpty()) {
             return@withContext Result.success(
-                "🎙️ **[Voice Assistant Response (Live API)]**\n" +
-                "\"Regarding the auction strategy for $propertyContext: I recommend placing your initial bid 15% below your ceiling ARV threshold. Make sure to verify the court deposit rules before bidding!\""
+                "🎙️ **[Voice Assistant]**\n" +
+                "• **Status**: Live conversational voice AI unavailable (API Key missing).\n" +
+                "• **Action**: Consult your own due diligence checklist and a legal advisor for bidding strategy on $propertyContext."
             )
         }
 
@@ -393,21 +381,12 @@ object GeminiAiHubService {
     ): Result<String> = withContext(Dispatchers.IO) {
         val apiKey = getApiKey()
         if (apiKey.isEmpty()) {
-            val costPerSqm = if (surfaceSqm > 0) price / surfaceSqm else 2500.0
             return@withContext Result.success(
-                "⚡ **[FIRST-PRINCIPLES ATOMIC DECONSTRUCTION // CYBER-RADAR]**\n\n" +
-                "• **1. Atomic Physical Cost vs. Market Price**:\n" +
-                "  - Raw Materials (Reinforced Concrete, Steel Rebar, Structural Glass): ~€${(surfaceSqm * 650).toInt()} (~€650/m²)\n" +
-                "  - Labor & Mechanical Assembly: ~€${(surfaceSqm * 450).toInt()} (~€450/m²)\n" +
-                "  - Land & Location Premium: ~€${(price - (surfaceSqm * 1100)).coerceAtLeast(15000.0).toInt()}\n" +
-                "  - **Bureaucracy / Friction Tax**: ${if (costPerSqm > 3000) "High (Over 35% non-physical markup)" else "Low (Asset priced close to replacement cost)"}\n\n" +
-                "• **2. Energy Autonomy & Clean Power Output**:\n" +
-                "  - Rooftop Solar PV Potential: ~${(surfaceSqm * 0.45 * 180).toInt()} kWh/year yield (Est. €${(surfaceSqm * 0.45 * 45).toInt()}/year savings)\n" +
-                "  - Heat Pump + Battery Storage Payback: 4.2 Years (IRR: +19.4%)\n" +
-                "  - EV Charging Station Revenue Capability: High (Grade 2/Tesla Wall Connector ready)\n\n" +
-                "• **3. Hardcore Anti-Fragility & Liquidity Score**: **94.8 / 100**\n" +
-                "  - Breakeven Occupancy Threshold: 42%\n" +
-                "  - Stagflation / +500bps Rate Hike Resistance: Resilient due to strong physical discount."
+                "⚡ **[FIRST-PRINCIPLES CYBER-RADAR]**\n\n" +
+                "• **1. Physical Cost Analysis**: UNAVAILABLE\n" +
+                "• **2. Energy Autonomy Potential**: UNAVAILABLE\n" +
+                "• **3. Anti-Fragility Score**: UNVERIFIED_ESTIMATE\n" +
+                "• **Status**: Deep engineering audit requires Gemini API connection."
             )
         }
 
@@ -449,25 +428,16 @@ object GeminiAiHubService {
         distressLevel: String
     ): Result<String> = withContext(Dispatchers.IO) {
         val apiKey = getApiKey()
-        val pricePerSqm = if (surfaceSqm > 0) price / surfaceSqm else 2000.0
-        val currentReplacementCostPerSqm = 2850.0 // Today's new build cost in metropolitan Italy
-        val discountToReplacement = ((currentReplacementCostPerSqm - pricePerSqm) / currentReplacementCostPerSqm * 100.0).coerceIn(-10.0, 75.0)
 
         if (apiKey.isEmpty()) {
             return@withContext Result.success(
-                "💀 **[THE GRAVE DANCER'S UNDERWRITING MEMO // SAM ZELL CONTRARIAN AUDIT]**\n\n" +
-                "• **1. Replacement Cost Arbitrage**: ${if (discountToReplacement > 20) "EXCEPTIONAL MARGIN OF SAFETY" else "NARROW SAFETY SPREAD"}\n" +
-                "  - Acquisition Cost: €${pricePerSqm.toInt()}/m² vs. New Construction Replacement Cost: €${currentReplacementCostPerSqm.toInt()}/m²\n" +
-                "  - **Discount to Replacement Cost**: **${discountToReplacement.toInt()}%**\n" +
-                "  - *Zell Maxim*: \"If nobody can build a competing asset for less than your total basis, you control the pricing power.\"\n\n" +
-                "• **2. Supply & Demand Barrier (The Supply Moat)**:\n" +
-                "  - Submarket Supply Inelasticity Score: **88 / 100** (Strict zoning, high municipal permits hurdle).\n" +
-                "  - Demand Fickleness Rating: Low risk for essential residential housing.\n\n" +
-                "• **3. Downside-First Debt & Liquidity Analysis**:\n" +
-                "  - Breakeven Occupancy Threshold: **38%** (Survives severe multi-year recession).\n" +
-                "  - Debt Trap Warning: Avoid short-term bullet maturities. Utilize amortizing debt with 5+ year runway.\n\n" +
-                "• **4. Contrarian Sentiment Signal**: **STRONG BUY ON BLOOD-IN-THE-STREETS**\n" +
-                "  - Distress Type: $distressLevel. High forced-seller motivation creates asymmetric upside."
+                "💀 **[THE GRAVE DANCER'S UNDERWRITING MEMO]**\n\n" +
+                "• **1. Replacement Cost Arbitrage**: UNVERIFIED_ESTIMATE\n" +
+                "  - Basis vs. Replacement Cost analysis requires verified submarket data.\n\n" +
+                "• **2. Supply & Demand Barrier**: UNAVAILABLE\n\n" +
+                "• **3. Downside-First Debt Analysis**: UNAVAILABLE\n\n" +
+                "• **4. Contrarian Verdict**: PENDING DATA GROUNDING\n" +
+                "  - *Status*: Contrarian audit suspended due to lack of live market grounding."
             )
         }
 

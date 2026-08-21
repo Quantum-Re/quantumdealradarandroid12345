@@ -360,11 +360,14 @@ fun DistressedAlertCriteriaDialog(
                         // Instant Notification Test Button
                         OutlinedButton(
                             onClick = {
-                                val maxP = maxPriceText.toDoubleOrNull() ?: 185000.0
-                                val addr = if (searchQuery.isNotBlank()) "Via $searchQuery 12, Milano" else "Corso Buenos Aires 45, Milano"
-                                val lvl = if (selectedLevel != "ALL") selectedLevel else "Foreclosure"
-                                onTriggerTestNotification(addr, maxP, lvl)
+                                val maxP = maxPriceText.toDoubleOrNull()
+                                if (maxP != null) {
+                                    val addr = if (searchQuery.isNotBlank()) "Via $searchQuery 12, Milano" else "Corso Buenos Aires 45, Milano"
+                                    val lvl = if (selectedLevel != "ALL") selectedLevel else "Foreclosure"
+                                    onTriggerTestNotification(addr, maxP, lvl)
+                                }
                             },
+                            enabled = maxPriceText.toDoubleOrNull() != null,
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = CyanAccent),
                             border = androidx.compose.foundation.BorderStroke(1.dp, CyanAccent.copy(alpha = 0.5f)),
                             shape = RoundedCornerShape(10.dp),
@@ -380,11 +383,14 @@ fun DistressedAlertCriteriaDialog(
                         // Add Sample Property to Room DB to test trigger
                         Button(
                             onClick = {
-                                val maxP = maxPriceText.toDoubleOrNull() ?: 145000.0
-                                val addr = if (searchQuery.isNotBlank()) "Esempio: Immobile di test ($searchQuery)" else "Esempio: Immobile di test per criterio"
-                                val lvl = if (selectedLevel != "ALL") selectedLevel else "Auction"
-                                onAddSampleMatchingProperty(addr, maxP, lvl)
+                                val maxP = maxPriceText.toDoubleOrNull()
+                                if (maxP != null) {
+                                    val addr = if (searchQuery.isNotBlank()) "Esempio: Immobile di test ($searchQuery)" else "Esempio: Immobile di test per criterio"
+                                    val lvl = if (selectedLevel != "ALL") selectedLevel else "Auction"
+                                    onAddSampleMatchingProperty(addr, maxP, lvl)
+                                }
                             },
+                            enabled = maxPriceText.toDoubleOrNull() != null,
                             colors = ButtonDefaults.buttonColors(containerColor = EmeraldGreen, contentColor = Color.White),
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier

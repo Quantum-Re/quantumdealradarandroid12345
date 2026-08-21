@@ -334,7 +334,7 @@ fun MarketInsightsScreen(
             // 1. Macro Indicators Carousel Strip
             item {
                 Text(
-                    text = "INDICATORI MACRO IMMOBILIARI",
+                    text = "INDICATORI MACRO IMMOBILIARI (VALORI DI RIFERIMENTO, NON VERIFICATI IN TEMPO REALE)",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextMutedDark,

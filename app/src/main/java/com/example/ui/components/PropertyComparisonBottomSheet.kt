@@ -52,7 +52,7 @@ data class ComparableProperty(
     val location: String,
     val price: Double,
     val estimatedMarketValue: Double,
-    val surfaceSqm: Int,
+    val surfaceSqm: Int?,
     val discountPercent: Int = if (estimatedMarketValue > 0 && price > 0) (((estimatedMarketValue - price) / estimatedMarketValue) * 100).toInt().coerceAtLeast(0) else 0,
     val estimatedRoiCapRate: Double = 0.0,
     val propertyType: String = "Residenziale",
@@ -64,7 +64,8 @@ data class ComparableProperty(
     val rawDistressed: DistressedProperty? = null,
     val rawProperty: Property? = null
 ) {
-    val pricePerSqm: Double get() = if (surfaceSqm > 0) price / surfaceSqm else 0.0
+    // Nessuna superficie di ripiego: senza mq verificati il prezzo/m² resta non disponibile.
+    val pricePerSqm: Double? get() = surfaceSqm?.takeIf { it > 0 }?.let { price / it }
     val totalProfitPotential: Double get() = (estimatedMarketValue - price).coerceAtLeast(0.0)
 }
 
@@ -80,7 +81,7 @@ fun Property.toComparableProperty(): ComparableProperty {
         location = address,
         price = price,
         estimatedMarketValue = exitVal,
-        surfaceSqm = if (surfaceSqm > 0) surfaceSqm else 90,
+        surfaceSqm = surfaceSqm.takeIf { it > 0 },
         discountPercent = discount,
         estimatedRoiCapRate = roi,
         propertyType = propertyType,
@@ -141,7 +142,9 @@ fun ComparableProperty.toProperty(): Property {
         title = title,
         address = location,
         price = price,
-        surfaceSqm = surfaceSqm,
+        // Property.surfaceSqm non è nullable: 0 è la convenzione già usata in tutto il
+        // progetto per "superficie non disponibile" (vedi i takeIf { it > 0 } altrove).
+        surfaceSqm = surfaceSqm ?: 0,
         propertyType = propertyType,
         distressStatus = statusOrDistress,
         estimatedRenovationCost = 0.0,
@@ -168,7 +171,11 @@ fun PropertyComparisonBottomSheet(
     // Metric winner calculation helpers
     val minPriceId = remember(properties) { properties.minByOrNull { if (it.price > 0) it.price else Double.MAX_VALUE }?.id }
     val maxRoiId = remember(properties) { properties.maxByOrNull { it.estimatedRoiCapRate }?.id }
-    val minPricePerSqmId = remember(properties) { properties.filter { it.pricePerSqm > 0 }.minByOrNull { it.pricePerSqm }?.id }
+    val minPricePerSqmId = remember(properties) {
+        properties.mapNotNull { p -> p.pricePerSqm?.let { p.id to it } }
+            .minByOrNull { it.second }
+            ?.first
+    }
     val maxDiscountId = remember(properties) { properties.maxByOrNull { it.discountPercent }?.id }
     val maxProfitId = remember(properties) { properties.maxByOrNull { it.totalProfitPotential }?.id }
 
@@ -497,12 +504,12 @@ fun PropertyComparisonBottomSheet(
                                 )
 
                                 ComparisonMetricValueCell(
-                                    valueText = "${property.surfaceSqm} m²",
+                                    valueText = property.surfaceSqm?.let { "$it m²" } ?: "N/D",
                                     isWinner = false
                                 )
 
                                 ComparisonMetricValueCell(
-                                    valueText = if (property.pricePerSqm > 0) "${currencyFormatter.format(property.pricePerSqm)}/m²" else "N/D",
+                                    valueText = if (property.pricePerSqm != null) "${currencyFormatter.format(property.pricePerSqm)}/m²" else "N/D",
                                     isWinner = property.id == minPricePerSqmId,
                                     winnerText = "Best €/m²"
                                 )
@@ -669,7 +676,7 @@ private fun ComparisonTopInsightsBanner(
                 if (bestPriceSqmProp != null) {
                     InsightChip(
                         title = "Best Prezzo / m²",
-                        value = "${currencyFormatter.format(bestPriceSqmProp.pricePerSqm)}/m²",
+                        value = bestPriceSqmProp.pricePerSqm?.let { "${currencyFormatter.format(it)}/m²" } ?: "N/D",
                         badgeColor = CyanAccent,
                         modifier = Modifier.weight(1f)
                     )
@@ -732,8 +739,8 @@ private fun exportComparisonCsv(context: android.content.Context, properties: Li
             sb.append("${p.price},")
             sb.append("${p.estimatedMarketValue},")
             sb.append("${p.discountPercent}%,")
-            sb.append("${p.surfaceSqm},")
-            sb.append("${p.pricePerSqm},")
+            sb.append("${p.surfaceSqm ?: "N/D"},")
+            sb.append("${p.pricePerSqm ?: "N/D"},")
             sb.append("${p.estimatedRoiCapRate}%,")
             sb.append("\"${p.propertyType}\",")
             sb.append("\"${p.statusOrDistress}\"\n")

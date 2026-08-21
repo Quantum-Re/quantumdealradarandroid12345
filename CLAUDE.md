@@ -5,11 +5,13 @@ L'app non inventa mai un dato per completare una schermata. Se un dato manca,
 il calcolo non viene eseguito e l'assenza viene dichiarata all'utente.
 
 ## La regola meccanica
-Nessun `?:` con valore costante su un campo di misura — di mercato, geografico
-o statistico — in NESSUN punto del progetto: motori, repository, ViewModel e
-interfaccia compresi. Vale anche per i valori di default nelle dichiarazioni
-delle entità Room e per i campi lasciati vuoti dall'utente in un form.
-Sono ammessi solo: limiti di range in coerceIn, timeout, indici di lista.
+Nessun valore di misura mancante — mercato, superficie, prezzo, coordinate,
+statistica — può essere sostituito da una costante, con QUALUNQUE costrutto:
+`?:`, `if (x > 0) x else COSTANTE`, `takeIf`, `coerceAtLeast`, valori di
+default nelle dichiarazioni delle entità Room, campi lasciati vuoti in un
+form. Se il dato manca, il calcolo non si esegue e l'assenza si dichiara.
+Sono ammessi solo: limiti di range in coerceIn su un valore già presente,
+timeout, indici di lista, punto di partenza della telecamera di una mappa.
 
 ## Perché è scritta così
 Questo difetto è stato eliminato tre volte dai motori di calcolo ed è

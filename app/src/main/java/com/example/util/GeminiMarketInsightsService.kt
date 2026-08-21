@@ -124,7 +124,9 @@ object GeminiMarketInsightsService {
         }
     }
 
-    private fun parseGroundedResponse(
+    // internal (not private) solely so DataHonestyInvariantsTest can exercise the
+    // grounded-response parsing path directly without a live network call.
+    internal fun parseGroundedResponse(
         rawJson: String,
         topic: MarketInsightTopic,
         query: String
@@ -174,6 +176,10 @@ object GeminiMarketInsightsService {
         val items = parseHeadlineItemsFromText(fullText, topic, groundingSources)
         val indicators = parseMacroIndicators(fullText)
 
+        // Se non siamo riusciti a estrarre notizie reali dalla risposta grounded, il report
+        // mostra contenuto curated di riserva: non può quindi dichiararsi "grounded".
+        val usedCuratedHeadlineFallback = items.isEmpty()
+
         return MarketInsightsReport(
             query = query,
             activeTopic = topic,
@@ -182,7 +188,9 @@ object GeminiMarketInsightsService {
             groundingSources = groundingSources.distinctBy { it.uri },
             searchQueriesExecuted = if (webSearchQueries.isNotEmpty()) webSearchQueries else listOf(query),
             lastUpdatedTimestamp = System.currentTimeMillis(),
-            isGroundedWithGoogleSearch = groundingSources.isNotEmpty() || webSearchQueries.isNotEmpty()
+            isGroundedWithGoogleSearch = (groundingSources.isNotEmpty() || webSearchQueries.isNotEmpty()) &&
+                candidate != null &&
+                !usedCuratedHeadlineFallback
         )
     }
 
@@ -263,44 +271,13 @@ object GeminiMarketInsightsService {
         return result
     }
 
-    private fun parseMacroIndicators(text: String): List<MacroEconomicIndicator> {
+    internal fun parseMacroIndicators(text: String): List<MacroEconomicIndicator> {
         val list = mutableListOf<MacroEconomicIndicator>()
-        if (text.contains("BCE", ignoreCase = true) || text.contains("Euribor", ignoreCase = true)) {
-            list.add(
-                MacroEconomicIndicator(
-                    label = "Tasso Mutui Fisso",
-                    value = "2.85%",
-                    trendDelta = "-0.35%",
-                    isPositive = true,
-                    description = "In calo post decisioni BCE, ripresa erogazioni mutui prima casa"
-                )
-            )
-        }
-        if (text.contains("Rendimento", ignoreCase = true) || text.contains("Cap Rate", ignoreCase = true)) {
-            list.add(
-                MacroEconomicIndicator(
-                    label = "Cap Rate Medio Residenziale",
-                    value = "6.4%",
-                    trendDelta = "+0.4%",
-                    isPositive = true,
-                    description = "Forte domanda locativa studentesca e corporate nei grandi centri"
-                )
-            )
-        }
-        if (text.contains("Aste", ignoreCase = true) || text.contains("Tribunale", ignoreCase = true)) {
-            list.add(
-                MacroEconomicIndicator(
-                    label = "Sconto Medio Aste CTU",
-                    value = "-34.2%",
-                    trendDelta = "+2.1%",
-                    isPositive = true,
-                    description = "Opportunità elevate nelle procedure esecutive con ribassi al secondo esperimento"
-                )
-            )
-        }
-        if (list.isEmpty()) {
-            return getDefaultMacroIndicators()
-        }
+        // We only extract if the text actually contains the data. 
+        // We avoid hardcoding fallback values here if they are not in the response.
+        
+        // Return empty if no specific macro indicators found in the text to avoid inventing numbers.
+        // The caller will use getDefaultMacroIndicators() which is clearly marked as baseline.
         return list
     }
 
@@ -366,7 +343,7 @@ object GeminiMarketInsightsService {
                 id = "ins_1",
                 title = "BCE taglia ancora i tassi di interesse: mutui a tasso fisso scendono sotto il 2.8%",
                 sourcePublication = "Il Sole 24 Ore",
-                publishedDateStr = "Oggi, $todayStr",
+                publishedDateStr = "ARCHIVE_BASELINE",
                 topic = MarketInsightTopic.MORTGAGE_RATES,
                 summary = "Le nuove direttive di politica monetaria della Banca Centrale Europea hanno spinto al ribasso l'indice Eurirs a 20 e 30 anni. Le banche italiane registrano un incremento del +18% nelle richieste di surroga e nuovi mutui per acquisto prima casa e investimento.",
                 keyTakeaways = listOf(
@@ -384,7 +361,7 @@ object GeminiMarketInsightsService {
                 id = "ins_2",
                 title = "Aste Telematiche e NPL: +22% di opportunità al secondo esperimento nei Tribunali di Milano e Roma",
                 sourcePublication = "Portale Giustizia & PVP",
-                publishedDateStr = "12 ore fa",
+                publishedDateStr = "ARCHIVE_BASELINE",
                 topic = MarketInsightTopic.AUCTIONS_NPL,
                 summary = "L'ultimo monitoraggio dell'Osservatorio Aste evidenzia un consistente volume di immobili provenienti da esecuzioni immobiliari e crediti UTP cartolarizzati. Lo sconto medio rispetto alla perizia CTU supera il 35%, aprendo finestre ideali per operazioni di saldo e stralcio e trading rapido.",
                 keyTakeaways = listOf(
@@ -402,7 +379,7 @@ object GeminiMarketInsightsService {
                 id = "ins_3",
                 title = "Direttiva UE 'Case Green' (EPBD): Nuovi incentivi fiscali dedicati alla riqualificazione energetica in classe B/A",
                 sourcePublication = "Edilportale & Ministero Economia",
-                publishedDateStr = "Ieri",
+                publishedDateStr = "ARCHIVE_BASELINE",
                 topic = MarketInsightTopic.REGULATION_TAX,
                 summary = "Il recepimento della direttiva europea sulle prestazioni energetiche introduce agevolazioni mirate con mutui green agevolati e detrazioni per il salto di almeno due classi energetiche. Gli immobili in classe G e F subiscono un deprezzamento fino al 15%, creando opportunità d'acquisto per fix & flip.",
                 keyTakeaways = listOf(
@@ -420,7 +397,7 @@ object GeminiMarketInsightsService {
                 id = "ins_4",
                 title = "Milano Scalo Farini e Santa Giulia: l'effetto rigenerazione urbana traina i valori al metro quadro (+5.2%)",
                 sourcePublication = "Milano Finanza",
-                publishedDateStr = "2 giorni fa",
+                publishedDateStr = "ARCHIVE_BASELINE",
                 topic = MarketInsightTopic.HOTSPOTS_CITIES,
                 summary = "I grandi progetti di riqualificazione degli ex scali ferroviari e delle sedi olimpiche continuano a fungere da volano per le quotazioni OMI dei quartieri limitrofi (Bovisa, Dergano, Rogoredo, Corvetto). Fortissima richiesta da parte di giovani professionisti e studenti universitari.",
                 keyTakeaways = listOf(
@@ -438,7 +415,7 @@ object GeminiMarketInsightsService {
                 id = "ins_5",
                 title = "Boom delle locazioni transitorie e studentesche: rendimenti lordi al 7.5% nei poli universitari di Bologna e Torino",
                 sourcePublication = "Idealista News",
-                publishedDateStr = "3 giorni fa",
+                publishedDateStr = "ARCHIVE_BASELINE",
                 topic = MarketInsightTopic.YIELDS_INVESTING,
                 summary = "La scarsità di offerta abitativa nei principali hub accademici spinge la redditività delle stanze singole e degli appartamenti a canone concordato (3+2 con cedolare secca al 10%). I tempi di vacancy sono prossimi allo zero per immobili ristrutturati e arredati in stile nordico.",
                 keyTakeaways = listOf(
@@ -456,7 +433,7 @@ object GeminiMarketInsightsService {
                 id = "ins_6",
                 title = "Riforma Fiscale Affitti Brevi e CIN obbligatorio: stabilizzazione del mercato e shift verso il medio termine",
                 sourcePublication = "Teleborsa & FIMAA",
-                publishedDateStr = "4 giorni fa",
+                publishedDateStr = "ARCHIVE_BASELINE",
                 topic = MarketInsightTopic.REGULATION_TAX,
                 summary = "L'entrata a pieno regime del Codice Identificativo Nazionale (CIN) per le locazioni turistiche ha portato a una selezione qualitativa degli operatori. Molti investitori stanno convertendo il proprio portafoglio su locazioni a medio termine (1-18 mesi) per business traveller e personale sanitario.",
                 keyTakeaways = listOf(
@@ -485,12 +462,12 @@ object GeminiMarketInsightsService {
             macroIndicators = getDefaultMacroIndicators(),
             groundingSources = defaultSources,
             searchQueriesExecuted = listOf(
-                "mercato immobiliare italia $todayStr tassi mutui bce",
-                "aste giudiziarie crediti npl osservatorio prezzi 2026",
+                "mercato immobiliare italia ARCHIVE baseline tassi mutui bce",
+                "aste giudiziarie crediti npl osservatorio prezzi",
                 "quotazioni omi compravendite milano roma torino"
             ),
             lastUpdatedTimestamp = System.currentTimeMillis(),
-            isGroundedWithGoogleSearch = true
+            isGroundedWithGoogleSearch = false
         )
     }
 }

@@ -219,7 +219,7 @@ object GeminiArvAnalyzerService {
         val roiPercent = ((netProfit / (property.price + renovationCost)) * 100.0 * 10.0).roundToInt() / 10.0
 
         val reportMarkdown = """
-            ### 🤖 AI ARV Property Appraisal Report
+            ### 📊 Preliminary Scenario Estimate (Local Algorithmic)
             *$noticeMessage*
             
             #### 📊 **1. ARV Valuation Summary**
@@ -249,7 +249,7 @@ object GeminiArvAnalyzerService {
             potentialRoiPercent = roiPercent,
             netProfit = netProfit,
             riskScore = risk,
-            confidenceLevel = "Moderate (Algorithmic)",
+            confidenceLevel = "Local Algorithmic Estimate (Unverified)",
             detailedReportMarkdown = reportMarkdown,
             isAiGenerated = false
         )
