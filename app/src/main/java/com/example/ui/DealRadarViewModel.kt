@@ -1048,7 +1048,7 @@ class DealRadarViewModel(application: Application) : AndroidViewModel(applicatio
         location: String,
         propertyType: String,
         askingPrice: Double,
-        marketValue: Double,
+        marketValue: Double?,
         sqm: Int,
         auctionDate: String?
     ) {
@@ -1061,7 +1061,9 @@ class DealRadarViewModel(application: Application) : AndroidViewModel(applicatio
                 location = location.ifBlank { "Milano (MI)" },
                 propertyType = propertyType,
                 askingPrice = askingPrice,
-                estimatedMarketValue = marketValue,
+                // Se l'utente non inserisce una stima di mercato, non se ne
+                // inventa una: si riflette il prezzo richiesto, l'unico dato reale.
+                estimatedMarketValue = marketValue ?: askingPrice,
                 surfaceSqm = sqm,
                 discountPercent = 0,
                 estimatedCapRate = 7.0,

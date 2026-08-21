@@ -390,7 +390,7 @@ fun PropertyDetailScreen(
                                             color = CyanAccent
                                         )
                                     }
-                                    if (property.latitude == 0.0 && property.longitude == 0.0) {
+                                    if (property.latitude == null || property.longitude == null) {
                                         Surface(
                                             color = AmberGold.copy(alpha = 0.15f),
                                             shape = RoundedCornerShape(6.dp),

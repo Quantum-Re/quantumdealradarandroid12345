@@ -73,9 +73,11 @@ fun PredictiveDealAlertCard(
         PredictiveDealAlertEngine.evaluateProperty(evalProperty, kpi)
     }
 
-    val isRankingAvailable = evaluation.isRankingAvailable
     val isTop10 = evaluation.isTop10Percentile
-    val percentile = evaluation.dealPercentile ?: 50.0
+    val percentile = evaluation.dealPercentile
+    // Il ranking predittivo esiste solo se percentile è stato calcolato: senza
+    // storico verificato non deve essere disegnato né badge né gauge.
+    val isRankingAvailable = evaluation.isRankingAvailable && percentile != null
 
     // Colors based on percentile tier
     val accentColor = if (!isRankingAvailable) {
@@ -216,6 +218,7 @@ fun PredictiveDealAlertCard(
                     }
                 }
             } else {
+                val percentileValue: Double = percentile
                 // Central Percentile Gauge & Status
                 Row(
                     modifier = Modifier
@@ -248,7 +251,7 @@ fun PredictiveDealAlertCard(
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
-                                text = String.format(Locale.US, "%.0f°", percentile),
+                                text = String.format(Locale.US, "%.0f°", percentileValue),
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Black,
                                 color = accentColor
@@ -281,7 +284,7 @@ fun PredictiveDealAlertCard(
                         contentAlignment = Alignment.Center
                     ) {
                         val animatedProgress by animateFloatAsState(
-                            targetValue = (percentile / 100f).toFloat().coerceIn(0f, 1f),
+                            targetValue = (percentileValue / 100f).toFloat().coerceIn(0f, 1f),
                             animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
                             label = "percentile_arc"
                         )
@@ -314,7 +317,7 @@ fun PredictiveDealAlertCard(
                                 color = TextMutedDark
                             )
                             Text(
-                                text = if (isTop10) "${(100 - percentile).roundToInt()}%" else "${percentile.roundToInt()}",
+                                text = if (isTop10) "${(100 - percentileValue).roundToInt()}%" else "${percentileValue.roundToInt()}",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = accentColor
@@ -602,11 +605,12 @@ private fun HistoricalYieldComparisonChart(
     propertyYield: Double
 ) {
     val points = stats.historicalPoints
+    if (points.isEmpty()) return
     val p90 = stats.p90HistoricalYield ?: return
 
     val allYields = points.map { it.grossYieldPercent } + propertyYield + p90
-    val minYield = max(1.0, (allYields.minOrNull() ?: 3.0) * 0.85)
-    val maxYield = (allYields.maxOrNull() ?: 8.0) * 1.15
+    val minYield = max(1.0, allYields.min() * 0.85)
+    val maxYield = allYields.max() * 1.15
     val range = max(0.1, maxYield - minYield)
 
     Column(

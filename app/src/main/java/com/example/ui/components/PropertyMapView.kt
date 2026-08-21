@@ -113,8 +113,8 @@ fun PropertyMapView(
     ) {
         if (useVectorEngine) {
             val convertedDeals = remember(mappableProperties) {
-                mappableProperties.map { prop ->
-                    val coords = resolvePropertyCoordinates(prop)
+                mappableProperties.mapNotNull { prop ->
+                    val coords = resolvePropertyCoordinates(prop) ?: return@mapNotNull null
                     com.example.data.PropertyDeal(
                         id = prop.id,
                         title = prop.title.ifBlank { prop.address },
@@ -153,7 +153,7 @@ fun PropertyMapView(
             uiSettings = uiSettings
         ) {
             mappableProperties.forEach { property ->
-                val pos = resolvePropertyCoordinates(property)
+                val pos = resolvePropertyCoordinates(property) ?: return@forEach
                 val isSelected = (property.id == selectedPropertyId)
 
                 MarkerComposable(
@@ -282,7 +282,7 @@ fun PropertyMapView(
                 onClick = {
                     if (mappableProperties.isNotEmpty()) {
                         val builder = LatLngBounds.builder()
-                        mappableProperties.forEach { builder.include(resolvePropertyCoordinates(it)) }
+                        mappableProperties.forEach { resolvePropertyCoordinates(it)?.let { coords -> builder.include(coords) } }
                         coroutineScope.launch {
                             try {
                                 cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(builder.build(), 120))
@@ -519,11 +519,13 @@ fun PropertyMapView(
 }
 
 /**
- * Resolves coordinate field for a Property.
+ * Resolves coordinate field for a Property. Returns null when the property
+ * has no verified coordinates: such a property must not be drawn on the map.
  */
-private fun resolvePropertyCoordinates(property: Property): LatLng {
-    val lat = property.latitude ?: 42.5
-    val lng = property.longitude ?: 12.5
+private fun resolvePropertyCoordinates(property: Property): LatLng? {
+    val lat = property.latitude
+    val lng = property.longitude
+    if (lat == null || lng == null) return null
     return LatLng(lat, lng)
 }
 

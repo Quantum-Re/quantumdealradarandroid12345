@@ -4,6 +4,7 @@ import com.example.data.Property
 import com.example.data.PropertyDeal
 import com.example.util.MarketEstimateService
 import com.example.util.PredictiveDealAlertEngine
+import com.example.util.ProvinceScrapedKpi
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -110,5 +111,86 @@ class PredictiveDealAlertEngineTest {
         // Il ranking invece no.
         assertFalse(evaluation.isRankingAvailable)
         assertNull(evaluation.dealPercentile)
+    }
+
+    @Test
+    fun `senza trend di vendita e affitto verificati la proiezione 12 e 24 mesi non viene prodotta`() {
+        val kpiSenzaTrend = ProvinceScrapedKpi(
+            locationName = "Milano",
+            province = "MI",
+            region = "Lombardia",
+            avgSalePriceSqM = 3000.0,
+            avgRentPriceSqM = 15.0,
+            saleTrendYoY = null,
+            rentTrendYoY = null
+        )
+
+        val property = Property(
+            id = 301L,
+            title = "Bilocale Centro",
+            address = "Via Torino 10, Milano",
+            price = 200000.0,
+            surfaceSqm = 60,
+            estimatedRenovationCost = 0.0,
+            targetResalePrice = 250000.0
+        )
+
+        val evaluation = PredictiveDealAlertEngine.evaluateProperty(property, kpiSenzaTrend)
+
+        assertNull(
+            "nessun valore inventato ?: 2.0 per il trend di vendita mancante",
+            evaluation.predicted12mMarketValue
+        )
+        assertNull(
+            "nessun valore inventato per la proiezione a 24 mesi senza trend verificati",
+            evaluation.predicted24mMarketValue
+        )
+        assertNull(
+            "nessuna equity gain calcolata su una proiezione inesistente",
+            evaluation.predicted12mEquityGain
+        )
+        assertNull(
+            "nessun valore inventato ?: 3.0 per il trend di affitto mancante",
+            evaluation.predicted12mYield
+        )
+    }
+
+    @Test
+    fun `con trend di vendita e affitto verificati la proiezione 12 e 24 mesi viene prodotta`() {
+        val kpiConTrend = ProvinceScrapedKpi(
+            locationName = "Milano",
+            province = "MI",
+            region = "Lombardia",
+            avgSalePriceSqM = 3000.0,
+            avgRentPriceSqM = 15.0,
+            saleTrendYoY = 4.0,
+            rentTrendYoY = 5.0
+        )
+
+        val property = Property(
+            id = 302L,
+            title = "Bilocale Centro",
+            address = "Via Torino 10, Milano",
+            price = 200000.0,
+            surfaceSqm = 60,
+            estimatedRenovationCost = 0.0,
+            targetResalePrice = 250000.0
+        )
+
+        val evaluation = PredictiveDealAlertEngine.evaluateProperty(property, kpiConTrend)
+
+        assertNotNull(
+            "con trend verificati la proiezione a 12 mesi deve essere prodotta",
+            evaluation.predicted12mMarketValue
+        )
+        assertNotNull(
+            "con trend verificati la proiezione a 24 mesi deve essere prodotta",
+            evaluation.predicted24mMarketValue
+        )
+        assertNotNull(evaluation.predicted12mEquityGain)
+        assertNotNull(evaluation.predicted12mYield)
+
+        // 60 mq * 3000 EUR/mq * 1.04 = 187200.0
+        assertEquals(187200.0, evaluation.predicted12mMarketValue!!, 0.01)
     }
 }

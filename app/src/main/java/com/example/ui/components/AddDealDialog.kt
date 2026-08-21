@@ -26,7 +26,7 @@ fun AddDealDialog(
         location: String,
         propertyType: String,
         askingPrice: Double,
-        marketValue: Double,
+        marketValue: Double?,
         sqm: Int,
         auctionDate: String?
     ) -> Unit
@@ -34,11 +34,15 @@ fun AddDealDialog(
     var title by remember { mutableStateOf("") }
     var sourceName by remember { mutableStateOf("Quimmo") }
     var location by remember { mutableStateOf("Milano (MI)") }
-    var askingPriceStr by remember { mutableStateOf("180000") }
-    var marketValueStr by remember { mutableStateOf("290000") }
-    var sqmStr by remember { mutableStateOf("95") }
+    var askingPriceStr by remember { mutableStateOf("") }
+    var marketValueStr by remember { mutableStateOf("") }
+    var sqmStr by remember { mutableStateOf("") }
     var propertyType by remember { mutableStateOf("Residenziale") }
     var auctionDate by remember { mutableStateOf("15/10/2026") }
+
+    val parsedAskingPrice = askingPriceStr.toDoubleOrNull()
+    val parsedSqm = sqmStr.toIntOrNull()
+    val isSaveEnabled = parsedAskingPrice != null && parsedSqm != null
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -162,18 +166,23 @@ fun AddDealDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onConfirm(
-                        title,
-                        sourceName.lowercase().replace(" ", "_"),
-                        sourceName,
-                        location,
-                        propertyType,
-                        askingPriceStr.toDoubleOrNull() ?: 180000.0,
-                        marketValueStr.toDoubleOrNull() ?: 290000.0,
-                        sqmStr.toIntOrNull() ?: 90,
-                        auctionDate.ifBlank { null }
-                    )
+                    val price = parsedAskingPrice
+                    val sqm = parsedSqm
+                    if (price != null && sqm != null) {
+                        onConfirm(
+                            title,
+                            sourceName.lowercase().replace(" ", "_"),
+                            sourceName,
+                            location,
+                            propertyType,
+                            price,
+                            marketValueStr.toDoubleOrNull(),
+                            sqm,
+                            auctionDate.ifBlank { null }
+                        )
+                    }
                 },
+                enabled = isSaveEnabled,
                 colors = ButtonDefaults.buttonColors(containerColor = EmeraldGreen),
                 modifier = Modifier.testTag("confirm_add_deal_btn")
             ) {

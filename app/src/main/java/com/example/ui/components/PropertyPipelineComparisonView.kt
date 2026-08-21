@@ -954,7 +954,10 @@ private fun ComparisonMatrixTable(
                         // SECTION 1: CAPITALE & LAVORI
                         ComparisonSectionHeaderSpacer()
                         ComparisonValueCell(euroFormat.format(item.purchasePrice), isWinner = false)
-                        ComparisonValueCell("${prop.surfaceSqm.takeIf { it > 0 } ?: 90} m²", isWinner = false)
+                        ComparisonValueCell(
+                            prop.surfaceSqm.takeIf { it > 0 }?.let { "$it m²" } ?: "N/D",
+                            isWinner = false
+                        )
                         ComparisonValueCell(
                             valueText = if (item.pricePerSqm > 0) "${euroFormat.format(item.pricePerSqm)}/m²" else "N/D",
                             isWinner = isMinPriceSqm,
